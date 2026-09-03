@@ -189,6 +189,33 @@
   .mat-table tr.hl-row td{background:#eef3ff;}
   .mat-section-note{font-size:13px; color:var(--muted); margin-top:14px; line-height:1.7;}
 
+  /* ───────── 레이저 포인터 ───────── */
+  #laserBtn{
+    position:fixed; right:22px; bottom:22px; z-index:1000;
+    display:flex; align-items:center; gap:8px;
+    padding:11px 16px; border-radius:999px; border:1px solid var(--line);
+    background:var(--panel); color:var(--ink); font-family:inherit;
+    font-size:13.5px; font-weight:700; cursor:pointer;
+    box-shadow:0 4px 14px rgba(16,24,40,.14); transition:.15s;
+  }
+  #laserBtn:hover{transform:translateY(-1px);}
+  #laserBtn .dot{width:10px; height:10px; border-radius:50%; background:#e34948;}
+  #laserBtn.on{background:#e34948; border-color:#e34948; color:#fff;}
+  #laserBtn.on .dot{background:#fff; box-shadow:0 0 8px 2px rgba(255,255,255,.8);}
+  body.laser-on, body.laser-on *{cursor:none !important;}
+  .laser-dot{
+    position:fixed; left:0; top:0; width:16px; height:16px; border-radius:50%;
+    background:radial-gradient(circle, #ffd9d9 0%, #ff4b4b 40%, #d40000 100%);
+    box-shadow:0 0 14px 5px rgba(255,45,45,.55);
+    pointer-events:none; z-index:2000; transform:translate(-50%,-50%);
+  }
+  .laser-trail{
+    position:fixed; left:0; top:0; width:9px; height:9px; border-radius:50%;
+    background:rgba(255,64,64,.5); pointer-events:none; z-index:1999;
+    transform:translate(-50%,-50%); animation:laserFade .45s ease-out forwards;
+  }
+  @keyframes laserFade{from{opacity:.8; scale:1;} to{opacity:0; scale:.3;}}
+
   @media (max-width:820px){
     body{flex-direction:column; overflow:auto;}
     #sidebar{width:100%; min-width:0; height:auto; max-height:45vh;}
@@ -218,6 +245,8 @@
 </nav>
 
 <main id="main"><div class="view" id="view"></div></main>
+
+<button id="laserBtn" title="단축키: L 또는 Esc로 끄기"><span class="dot"></span>레이저 포인터</button>
 
 <script>
 /* ───────── 데이터 ───────── */
@@ -648,6 +677,48 @@ function deletePage(id){
   if(current.type==="custom"&&current.id===id) current={type:"chapter",id:1};
   render();
 }
+
+/* ───────── 레이저 포인터 ───────── */
+const laserBtn = document.getElementById("laserBtn");
+let laserOn = false, laserDot = null, lastTrail = 0;
+
+function setLaser(on){
+  laserOn = on;
+  document.body.classList.toggle("laser-on", on);
+  laserBtn.classList.toggle("on", on);
+  if(on && !laserDot){
+    laserDot = document.createElement("div");
+    laserDot.className = "laser-dot";
+    laserDot.style.display = "none";
+    document.body.appendChild(laserDot);
+  }
+  if(!on && laserDot){ laserDot.remove(); laserDot = null; }
+}
+laserBtn.onclick = ()=> setLaser(!laserOn);
+
+function laserMove(x, y){
+  if(!laserOn || !laserDot) return;
+  laserDot.style.display = "block";
+  laserDot.style.left = x+"px";
+  laserDot.style.top = y+"px";
+  const now = performance.now();
+  if(now - lastTrail > 28){
+    lastTrail = now;
+    const t = document.createElement("div");
+    t.className = "laser-trail";
+    t.style.left = x+"px"; t.style.top = y+"px";
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 500);
+  }
+}
+document.addEventListener("mousemove", e=> laserMove(e.clientX, e.clientY));
+document.addEventListener("touchmove", e=>{ if(laserOn && e.touches[0]) laserMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+document.addEventListener("keydown", e=>{
+  const tag = (document.activeElement||{}).tagName;
+  if(tag==="INPUT"||tag==="TEXTAREA") return;
+  if(e.key==="l"||e.key==="L") setLaser(!laserOn);
+  if(e.key==="Escape" && laserOn) setLaser(false);
+});
 
 function ytId(url){
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,20})/);
