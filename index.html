@@ -209,12 +209,7 @@
     box-shadow:0 0 14px 5px rgba(255,45,45,.55);
     pointer-events:none; z-index:2000; transform:translate(-50%,-50%);
   }
-  .laser-trail{
-    position:fixed; left:0; top:0; width:9px; height:9px; border-radius:50%;
-    background:rgba(255,64,64,.5); pointer-events:none; z-index:1999;
-    transform:translate(-50%,-50%); animation:laserFade .45s ease-out forwards;
-  }
-  @keyframes laserFade{from{opacity:.8; scale:1;} to{opacity:0; scale:.3;}}
+  #laserCanvas{position:fixed; left:0; top:0; width:100vw; height:100vh; pointer-events:none; z-index:1999;}
 
   @media (max-width:820px){
     body{flex-direction:column; overflow:auto;}
@@ -680,19 +675,67 @@ function deletePage(id){
 
 /* ───────── 레이저 포인터 ───────── */
 const laserBtn = document.getElementById("laserBtn");
-let laserOn = false, laserDot = null, lastTrail = 0;
+const TRAIL_TTL = 420;   /* 꼬리 잔상 지속시간(ms) */
+let laserOn = false, laserDot = null, laserCanvas = null, lctx = null, lpts = [], laserRaf = 0;
+
+function laserResize(){
+  if(!laserCanvas) return;
+  const d = window.devicePixelRatio || 1;
+  laserCanvas.width = innerWidth * d;
+  laserCanvas.height = innerHeight * d;
+  lctx.setTransform(d, 0, 0, d, 0, 0);
+}
+
+function laserTick(){
+  if(!laserOn || !lctx) return;
+  const now = performance.now();
+  lpts = lpts.filter(p => now - p.t < TRAIL_TTL);
+  lctx.clearRect(0, 0, innerWidth, innerHeight);
+  const N = lpts.length;
+  if(N > 1){
+    /* 같은 경로를 여러 겹으로 — 머리쪽일수록 더 많은 패스가 겹쳐 굵고 진해짐 */
+    lctx.lineCap = "round"; lctx.lineJoin = "round";
+    lctx.strokeStyle = "rgba(255,58,58,0.13)";
+    const passes = 6;
+    for(let p = 0; p < passes; p++){
+      const start = Math.floor((N - 1) * p / passes);
+      lctx.lineWidth = 1.5 + p * 1.9;
+      lctx.beginPath();
+      lctx.moveTo(lpts[start].x, lpts[start].y);
+      for(let i = start + 1; i < N; i++) lctx.lineTo(lpts[i].x, lpts[i].y);
+      lctx.stroke();
+    }
+  }
+  laserRaf = requestAnimationFrame(laserTick);
+}
 
 function setLaser(on){
   laserOn = on;
   document.body.classList.toggle("laser-on", on);
   laserBtn.classList.toggle("on", on);
-  if(on && !laserDot){
-    laserDot = document.createElement("div");
-    laserDot.className = "laser-dot";
-    laserDot.style.display = "none";
-    document.body.appendChild(laserDot);
+  if(on){
+    if(!laserDot){
+      laserDot = document.createElement("div");
+      laserDot.className = "laser-dot";
+      laserDot.style.display = "none";
+      document.body.appendChild(laserDot);
+    }
+    if(!laserCanvas){
+      laserCanvas = document.createElement("canvas");
+      laserCanvas.id = "laserCanvas";
+      document.body.appendChild(laserCanvas);
+      lctx = laserCanvas.getContext("2d");
+      laserResize();
+      addEventListener("resize", laserResize);
+    }
+    laserRaf = requestAnimationFrame(laserTick);
+  }else{
+    cancelAnimationFrame(laserRaf);
+    removeEventListener("resize", laserResize);
+    if(laserDot){ laserDot.remove(); laserDot = null; }
+    if(laserCanvas){ laserCanvas.remove(); laserCanvas = null; lctx = null; }
+    lpts = [];
   }
-  if(!on && laserDot){ laserDot.remove(); laserDot = null; }
 }
 laserBtn.onclick = ()=> setLaser(!laserOn);
 
@@ -701,15 +744,8 @@ function laserMove(x, y){
   laserDot.style.display = "block";
   laserDot.style.left = x+"px";
   laserDot.style.top = y+"px";
-  const now = performance.now();
-  if(now - lastTrail > 28){
-    lastTrail = now;
-    const t = document.createElement("div");
-    t.className = "laser-trail";
-    t.style.left = x+"px"; t.style.top = y+"px";
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(), 500);
-  }
+  lpts.push({x, y, t: performance.now()});
+  if(lpts.length > 120) lpts.shift();
 }
 document.addEventListener("mousemove", e=> laserMove(e.clientX, e.clientY));
 document.addEventListener("touchmove", e=>{ if(laserOn && e.touches[0]) laserMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
