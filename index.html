@@ -296,7 +296,7 @@ const CHAPTERS = [
 const MATERIALS = [
   {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지", icon:"📘"},
   {id:"electricity-flow", title:"전기는 흐르지 않는다", sub:"전자의 속도와 에너지의 정체", icon:"⚡"},
-  {id:"atom-model", title:"원자모델", sub:"준비 중", icon:"⚛️"},
+  {id:"atom-model", title:"원자모델", sub:"Atomic Models", icon:"⚛️"},
 ];
 
 const LS_KEY = "elec-custom-pages-v1";
@@ -571,7 +571,13 @@ function renderMaterial(m){
   return renderSemiHistory();
 }
 
-/* ───────── 고정 자료: 원자모델 (준비 중) ───────── */
+/* ───────── 고정 자료: 원자모델 ───────── */
+const ATOM_VIDEOS = [
+  {id:"-T-k9e5L1Oo", t:"그럼 진짜 원자는 도대체 어떻게 생겼음??"},
+  {id:"3YBy-Yu9OIw", t:"인간이 만든 특수 카메라가 촬영한 원자 내부의 실제 모습"},
+  {id:"4t7axgwScvY", t:"세상은 무엇으로 이루어져 있을까? 빛의 물리학 '빛과 원자'"},
+];
+
 function renderAtomModel(){
   return `
   <span class="ch-eyebrow">추가 자료</span>
@@ -579,8 +585,16 @@ function renderAtomModel(){
   <p class="ch-sub">Atomic Models</p>
 
   <div class="card">
-    <h3>⚛️ 준비 중입니다</h3>
-    <p class="empty">이 페이지는 아직 내용이 없습니다. 곧 자료가 올라갈 예정입니다.</p>
+    <h3>▶️ 참고 영상</h3>
+    <div class="yt-grid">
+      ${ATOM_VIDEOS.map(v=>`
+        <div class="yt-item">
+          <iframe src="https://www.youtube.com/embed/${v.id}" title="${esc(v.t)}" loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+          <div class="yt-cap"><span>${esc(v.t)}</span></div>
+        </div>`).join("")}
+    </div>
   </div>`;
 }
 
