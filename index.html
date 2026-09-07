@@ -233,6 +233,15 @@
     padding:3px 9px; border-radius:999px; margin-right:8px; vertical-align:1px;
   }
   .am-key{color:var(--accent-ink); font-weight:800;}
+  .sub-h{
+    font-size:15.5px; font-weight:800; color:var(--ink);
+    margin-top:26px; padding-top:22px; border-top:1px solid var(--line);
+  }
+  .quote{
+    border-left:4px solid var(--accent); background:#f5f9ff; border-radius:0 12px 12px 0;
+    padding:18px 22px; margin-top:20px; font-size:14.5px; line-height:1.9; color:#39424f;
+  }
+  .quote b{color:var(--accent-ink);}
 
   /* ───────── 레이저 포인터 ───────── */
   #laserBtn{
@@ -673,9 +682,320 @@ const ATOM_MODELS = [
   {n:"현재모형", d:"핵 주위의 전자를 확률 분포에 따라 나타내게 하는 <span class=\"am-key\">전자구름모형</span>이다."},
 ];
 
+/* ── 러더퍼드 금박 산란 실험 ── */
+function rutherfordExp(){
+  const w=820, h=310, fx=380, fy=160, R=150;
+  const pol = (a,r)=>[fx+r*Math.cos(a*Math.PI/180), fy+r*Math.sin(a*Math.PI/180)];
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="러더퍼드 금박 산란 실험 개념도">`;
+  s += `<defs><marker id="raA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="${VIZ.blue}"/></marker>`;
+  s += `<marker id="raB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#e8552d"/></marker></defs>`;
+
+  /* 형광 스크린(검출기) */
+  s += `<path d="M${pol(-62,R)[0].toFixed(1)} ${pol(-62,R)[1].toFixed(1)} A${R} ${R} 0 0 1 ${pol(62,R)[0].toFixed(1)} ${pol(62,R)[1].toFixed(1)}" fill="none" stroke="${VIZ.axis}" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+  s += `<path d="M${pol(118,R)[0].toFixed(1)} ${pol(118,R)[1].toFixed(1)} A${R} ${R} 0 0 1 ${pol(242,R)[0].toFixed(1)} ${pol(242,R)[1].toFixed(1)}" fill="none" stroke="${VIZ.axis}" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+  s += `<text x="${(fx+R+14)}" y="${fy+4}" font-size="12" font-weight="700" fill="${VIZ.sub}">형광 스크린</text>`;
+
+  /* 선원 + 시준 */
+  s += `<rect x="46" y="${fy-26}" width="52" height="52" rx="7" fill="#4a5462"/>`;
+  s += `<circle cx="72" cy="${fy}" r="9" fill="#8ee06a"/>`;
+  s += `<text x="72" y="${fy+46}" text-anchor="middle" font-size="12" font-weight="700" fill="${VIZ.sub}">α 선원</text>`;
+  s += `<text x="72" y="${fy+62}" text-anchor="middle" font-size="11" fill="${VIZ.muted}">(라듐)</text>`;
+  s += `<rect x="150" y="${fy-34}" width="14" height="26" fill="#4a5462"/><rect x="150" y="${fy+8}" width="14" height="26" fill="#4a5462"/>`;
+  s += `<line x1="98" y1="${fy}" x2="${fx-14}" y2="${fy}" stroke="${VIZ.blue}" stroke-width="2.5"/>`;
+
+  /* 금박 */
+  s += `<rect x="${fx-5}" y="${fy-96}" width="10" height="192" rx="3" fill="#f2b53c" stroke="#c98a13" stroke-width="1.5"/>`;
+  s += `<text x="${fx}" y="${fy-106}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#a06f0b">금박</text>`;
+  s += `<text x="${fx}" y="${fy+118}" text-anchor="middle" font-size="11" fill="${VIZ.muted}">두께 약 0.0004 mm (원자 수천 층)</text>`;
+
+  /* 산란 경로 */
+  [0,0,0].forEach((_,i)=>{
+    const y = fy + (i-1)*16;
+    s += `<line x1="${fx+5}" y1="${y}" x2="${fx+R-6}" y2="${y}" stroke="${VIZ.blue}" stroke-width="${i===1?3:1.6}" marker-end="url(#raA)" opacity="${i===1?1:.55}"/>`;
+  });
+  [18,-22,38].forEach(a=>{
+    const [ex,ey]=pol(a,R-6);
+    s += `<line x1="${fx+5}" y1="${fy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${VIZ.blue}" stroke-width="1.6" opacity=".7" marker-end="url(#raA)"/>`;
+  });
+  [162,196].forEach(a=>{
+    const [ex,ey]=pol(a,R-6);
+    s += `<line x1="${fx-5}" y1="${fy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="#e8552d" stroke-width="2.4" marker-end="url(#raB)"/>`;
+  });
+
+  s += `<text x="${fx+40}" y="${fy-62}" font-size="12.5" font-weight="800" fill="${VIZ.blue}">대부분 그대로 통과</text>`;
+  s += `<text x="${fx+40}" y="${fy-44}" font-size="11.5" fill="${VIZ.sub}">→ 원자 내부는 거의 비어 있다</text>`;
+  s += `<text x="${fx-24}" y="${fy-62}" text-anchor="end" font-size="12.5" font-weight="800" fill="#e8552d">8,000개 중 1개꼴로</text>`;
+  s += `<text x="${fx-24}" y="${fy-44}" text-anchor="end" font-size="12.5" font-weight="800" fill="#e8552d">90° 넘게 튕겨 나옴</text>`;
+  s += `<text x="${fx-24}" y="${fy-26}" text-anchor="end" font-size="11.5" fill="${VIZ.sub}">→ 질량과 (+)전하가 한 점에</text>`;
+  return s+"</svg>";
+}
+
+/* ── 수소 에너지 준위와 발머 계열 선 스펙트럼 ── */
+function hydrogenLevels(){
+  const w=820, h=390, yTop=70, yBot=340;
+  const E = n => -13.6/(n*n);
+  const y = e => yTop + (0-e)/13.6*(yBot-yTop);
+  const arrow = (x,y1,y2,c,lw)=>`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2-7}" stroke="${c}" stroke-width="${lw||2.2}"/>`+
+    `<path d="M${x-5} ${y2-8} L${x+5} ${y2-8} L${x} ${y2} Z" fill="${c}"/>`;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="수소 원자의 에너지 준위와 발머 계열 선 스펙트럼">`;
+
+  /* 왼쪽: 에너지 준위 */
+  s += `<text x="60" y="34" font-size="13.5" font-weight="800" fill="${VIZ.ink}">수소 원자의 에너지 준위</text>`;
+  s += `<text x="60" y="52" font-size="11.5" fill="${VIZ.muted}">Eₙ = −13.6 / n² [eV]</text>`;
+  s += `<line x1="60" y1="${yTop-6}" x2="60" y2="${yBot+10}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  [1,2,3,4,5,6].forEach(n=>{
+    const yy=y(E(n));
+    s += `<line x1="72" y1="${yy.toFixed(1)}" x2="300" y2="${yy.toFixed(1)}" stroke="${VIZ.ink}" stroke-width="${n<=3?2.2:1.4}"/>`;
+    if(n<=3) s += `<text x="308" y="${(yy+4).toFixed(1)}" font-size="12" font-weight="700" fill="${VIZ.sub}">n=${n}　${E(n).toFixed(2)} eV</text>`;
+  });
+  s += `<line x1="72" y1="${yTop}" x2="300" y2="${yTop}" stroke="${VIZ.muted}" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  s += `<text x="308" y="${yTop-8}" font-size="12" font-weight="700" fill="${VIZ.muted}">n→∞　0 eV (이온화)</text>`;
+  s += `<text x="308" y="${(y(E(4))+4).toFixed(1)}" font-size="10.5" fill="${VIZ.muted}">n=4, 5, 6 …</text>`;
+
+  const BAL=[[3,"#ef4444"],[4,"#22c3dd"],[5,"#4f46e5"],[6,"#7c3aed"]];
+  BAL.forEach(([n,c],i)=>{ s += arrow(120+i*26, y(E(n)), y(E(2)), c, 2.4); });
+  s += arrow(96, y(E(2)), y(E(1)), "#94a3b8", 2.4);
+  s += `<text x="210" y="${(y(E(2))+24).toFixed(1)}" font-size="12" font-weight="800" fill="${VIZ.accent}">발머 계열 → n=2 (가시광)</text>`;
+  s += `<text x="118" y="${(y(E(1))-12).toFixed(1)}" font-size="12" font-weight="800" fill="#64748b">라이먼 계열 → n=1 (자외선)</text>`;
+
+  /* 오른쪽: 선 스펙트럼 */
+  const sx=470, sw=300, sy=150;
+  s += `<text x="${sx}" y="34" font-size="13.5" font-weight="800" fill="${VIZ.ink}">수소 발머 계열 선 스펙트럼</text>`;
+  s += `<text x="${sx}" y="52" font-size="11.5" fill="${VIZ.muted}">1/λ = R (1/n₁² − 1/n₂²),　R = 1.097×10⁷ m⁻¹</text>`;
+  s += `<rect x="${sx}" y="${sy}" width="${sw}" height="86" rx="6" fill="#0d1117"/>`;
+  const LINES=[[656.3,"#ef4444","Hα"],[486.1,"#22c3dd","Hβ"],[434.0,"#4f46e5","Hγ"],[410.2,"#7c3aed","Hδ"]];
+  LINES.forEach(([lam,c,nm])=>{
+    const x = sx + (lam-400);
+    s += `<rect x="${(x-1.6).toFixed(1)}" y="${sy+6}" width="3.2" height="74" fill="${c}"/>`;
+    s += `<text x="${x.toFixed(1)}" y="${sy-8}" text-anchor="middle" font-size="11.5" font-weight="800" fill="${c}">${nm}</text>`;
+    s += `<text x="${x.toFixed(1)}" y="${sy+104}" text-anchor="middle" font-size="10.5" fill="${VIZ.sub}">${lam}</text>`;
+  });
+  [400,500,600,700].forEach(t=>{
+    s += `<text x="${sx+(t-400)}" y="${sy+124}" text-anchor="middle" font-size="11" fill="${VIZ.muted}">${t}</text>`;
+  });
+  s += `<text x="${sx+sw/2}" y="${sy+144}" text-anchor="middle" font-size="11" fill="${VIZ.muted}">파장 [nm]</text>`;
+  s += `<text x="${sx}" y="${sy+178}" font-size="12" fill="${VIZ.sub}">전자가 n=3,4,5,6 에서 n=2 로 떨어질 때 내놓는 빛이</text>`;
+  s += `<text x="${sx}" y="${sy+196}" font-size="12" fill="${VIZ.sub}">정확히 이 네 개의 선으로 관측됩니다. 색은 왼쪽 화살표와 같습니다.</text>`;
+  return s+"</svg>";
+}
+
+/* ── 드브로이 정상파: 왜 궤도가 불연속인가 ── */
+function deBroglieWave(){
+  const w=820, h=310, cy=140, R=76, A=17;
+  const path=(cx,n)=>{
+    let d=""; const seg=360;
+    for(let i=0;i<=seg;i++){
+      const t=i/seg*Math.PI*2, rr=R+A*Math.sin(n*t);
+      d += (i?"L":"M")+(cx+rr*Math.cos(t)).toFixed(1)+" "+(cy+rr*Math.sin(t)).toFixed(1);
+    }
+    return d;
+  };
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="드브로이 물질파 정상파 조건: 정수배일 때만 궤도가 허용된다">`;
+  [[240,4,true],[580,4.4,false]].forEach(([cx,n,ok])=>{
+    s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${VIZ.grid}" stroke-width="1.4" stroke-dasharray="4 4"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="11" fill="#f79a1e"/>`;
+    s += `<path d="${path(cx,n)}" fill="none" stroke="${ok?VIZ.accent:"#e8552d"}" stroke-width="2.6" stroke-linejoin="round"/>`;
+  });
+  s += `<text x="240" y="40" text-anchor="middle" font-size="13.5" font-weight="800" fill="${VIZ.accent}">2πr = 4λ　— 허용</text>`;
+  s += `<text x="240" y="${cy+R+44}" text-anchor="middle" font-size="12" fill="${VIZ.sub}">파장의 정수배가 딱 맞아 파가 스스로 보강됩니다.</text>`;
+  s += `<text x="580" y="40" text-anchor="middle" font-size="13.5" font-weight="800" fill="#e8552d">2πr ≠ nλ　— 불허용</text>`;
+  s += `<text x="580" y="${cy+R+44}" text-anchor="middle" font-size="12" fill="${VIZ.sub}">한 바퀴 돌아온 파가 어긋나 스스로 상쇄됩니다.</text>`;
+  s += `<circle cx="${(580+R+A).toFixed(1)}" cy="${cy}" r="7" fill="none" stroke="#e8552d" stroke-width="2"/>`;
+  s += `<text x="${(580+R+A+14).toFixed(1)}" y="${cy+4}" font-size="11.5" font-weight="700" fill="#e8552d">어긋남</text>`;
+  s += `<text x="410" y="${h-20}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${VIZ.ink}">2πr = nλ,　λ = h/mv　⇒　mvr = n·h/2π　(보어의 양자 조건)</text>`;
+  return s+"</svg>";
+}
+
+/* ── 불확정성 원리: 단일 슬릿 ── */
+function uncertaintySlit(){
+  const w=820, h=280;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="단일 슬릿 회절로 본 불확정성 원리">`;
+  const setup=(ox,gap,spread,title,sub,c)=>{
+    const bx=ox+150, sxs=ox+300, cy=150;
+    let g="";
+    g += `<text x="${ox+160}" y="34" text-anchor="middle" font-size="13" font-weight="800" fill="${c}">${title}</text>`;
+    g += `<text x="${ox+160}" y="52" text-anchor="middle" font-size="11.5" fill="${VIZ.sub}">${sub}</text>`;
+    [0,1,2,3].forEach(i=>{ g += `<line x1="${ox+20+i*26}" y1="${cy-58}" x2="${ox+20+i*26}" y2="${cy+58}" stroke="${VIZ.blue}" stroke-width="1.6" opacity=".55"/>`; });
+    g += `<rect x="${bx}" y="${cy-72}" width="9" height="${72-gap}" fill="#4a5462"/>`;
+    g += `<rect x="${bx}" y="${cy+gap}" width="9" height="${72-gap}" fill="#4a5462"/>`;
+    g += `<path d="M${bx+9} ${cy-gap} L${sxs} ${cy-spread} L${sxs} ${cy+spread} L${bx+9} ${cy+gap} Z" fill="${c}" opacity=".16"/>`;
+    g += `<line x1="${bx+9}" y1="${cy}" x2="${sxs}" y2="${cy}" stroke="${c}" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+    g += `<line x1="${sxs}" y1="${cy-86}" x2="${sxs}" y2="${cy+86}" stroke="${VIZ.axis}" stroke-width="2.5"/>`;
+    let d=`M${sxs} ${cy+80}`;
+    for(let i=-80;i<=80;i+=4){
+      const v=Math.exp(-(i*i)/(2*spread*spread*0.36))*46;
+      d += ` L${(sxs+v).toFixed(1)} ${(cy+i).toFixed(1)}`;
+    }
+    g += `<path d="${d}" fill="none" stroke="${c}" stroke-width="2.2"/>`;
+    g += `<text x="${bx-8}" y="${cy-gap-6}" text-anchor="end" font-size="11.5" font-weight="800" fill="${VIZ.ink}">Δx</text>`;
+    g += `<line x1="${bx-4}" y1="${cy-gap}" x2="${bx-4}" y2="${cy+gap}" stroke="${VIZ.ink}" stroke-width="1.4"/>`;
+    g += `<text x="${sxs+56}" y="${cy+4}" font-size="11.5" font-weight="800" fill="${c}">Δp</text>`;
+    return g;
+  };
+  s += setup(40, 30, 30, "슬릿이 넓으면", "위치는 흐릿(Δx 큼) · 퍼짐은 좁음(Δp 작음)", VIZ.blue);
+  s += setup(430, 9, 66, "슬릿이 좁으면", "위치는 또렷(Δx 작음) · 퍼짐은 넓음(Δp 큼)", "#e8552d");
+  s += `<text x="410" y="${h-16}" text-anchor="middle" font-size="13" font-weight="800" fill="${VIZ.ink}">Δx · Δp ≥ ħ/2 = h/4π　— 위치를 좁힐수록 운동량은 반드시 넓어진다</text>`;
+  return s+"</svg>";
+}
+
+/* ── 오비탈 개형 ── */
+function orbitalShapes(){
+  const w=820, h=250, cy=120;
+  const cx=[160,410,660];
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="1s, 2s, 2p 오비탈의 확률 분포 개형">`;
+  s += `<defs>`;
+  s += `<radialGradient id="obA" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#1f7fc4" stop-opacity=".95"/><stop offset="0.45" stop-color="#3aa3dd" stop-opacity=".45"/><stop offset="1" stop-color="#7fc9ef" stop-opacity="0"/></radialGradient>`;
+  s += `<radialGradient id="obB" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#1f7fc4" stop-opacity=".9"/><stop offset="0.26" stop-color="#3aa3dd" stop-opacity=".12"/><stop offset="0.40" stop-color="#3aa3dd" stop-opacity=".05"/><stop offset="0.58" stop-color="#2f9ad8" stop-opacity=".5"/><stop offset="0.82" stop-color="#7fc9ef" stop-opacity=".18"/><stop offset="1" stop-color="#7fc9ef" stop-opacity="0"/></radialGradient>`;
+  s += `<radialGradient id="obC" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#1f7fc4" stop-opacity=".9"/><stop offset="0.55" stop-color="#3aa3dd" stop-opacity=".4"/><stop offset="1" stop-color="#7fc9ef" stop-opacity="0"/></radialGradient>`;
+  s += `<filter id="obBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter></defs>`;
+
+  s += `<circle cx="${cx[0]}" cy="${cy}" r="66" fill="url(#obA)" filter="url(#obBlur)"/>`;
+  s += `<circle cx="${cx[1]}" cy="${cy}" r="76" fill="url(#obB)" filter="url(#obBlur)"/>`;
+  s += `<ellipse cx="${cx[2]}" cy="${cy-38}" rx="34" ry="46" fill="url(#obC)" filter="url(#obBlur)"/>`;
+  s += `<ellipse cx="${cx[2]}" cy="${cy+38}" rx="34" ry="46" fill="url(#obC)" filter="url(#obBlur)"/>`;
+  s += `<line x1="${cx[2]-58}" y1="${cy}" x2="${cx[2]+58}" y2="${cy}" stroke="${VIZ.muted}" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  [["1s","마디 없음 · 구 대칭"],["2s","방사 마디 1개"],["2p","아령 모양 · 마디면 1개"]].forEach(([t,d],i)=>{
+    s += `<text x="${cx[i]}" y="${h-52}" text-anchor="middle" font-size="15" font-weight="800" fill="${VIZ.ink}">${t}</text>`;
+    s += `<text x="${cx[i]}" y="${h-32}" text-anchor="middle" font-size="12" fill="${VIZ.sub}">${d}</text>`;
+  });
+  s += `<text x="410" y="${h-10}" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">진하기는 그 위치에서 전자가 발견될 확률밀도 |ψ|² 를 뜻합니다.</text>`;
+  return s+"</svg>";
+}
+
+/* ── 원자의 불연속 준위가 결정 속에서 에너지 밴드가 되는 과정 ── */
+function bandSplit(){
+  const w=820, h=310, x0=200, x1=660;
+  const env=(yc,maxS,top)=>{
+    let d="";
+    for(let i=0;i<=46;i++){
+      const x=x0+(x1-x0)*i/46;
+      const f=Math.pow((x1-x)/(x1-x0),2);
+      const y=yc+(top?-1:1)*maxS*f/2;
+      d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);
+    }
+    return d;
+  };
+  const at=(x,yc,maxS,top)=>{ const f=Math.pow((x1-x)/(x1-x0),2); return yc+(top?-1:1)*maxS*f/2; };
+  const CY_C=95, S_C=95, CY_V=212, S_V=112;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="원자의 불연속 에너지 준위가 결정 속에서 에너지 밴드로 갈라지는 과정">`;
+  s += `<path d="${env(CY_C,S_C,true)} L${x1} ${CY_C} ${env(CY_C,S_C,false).replace("M","L")}" fill="none"/>`;
+  /* 밴드 영역 채우기 */
+  const band=(yc,maxS,fill)=>{
+    let d=env(yc,maxS,true);
+    for(let i=46;i>=0;i--){
+      const x=x0+(x1-x0)*i/46, f=Math.pow((x1-x)/(x1-x0),2);
+      d+="L"+x.toFixed(1)+" "+(yc+maxS*f/2).toFixed(1);
+    }
+    return `<path d="${d}Z" fill="${fill}" stroke="${VIZ.blue}" stroke-width="1.4"/>`;
+  };
+  s += band(CY_C,S_C,"#dcebfb");
+  s += band(CY_V,S_V,"#bcd9f6");
+
+  /* 고립 원자의 불연속 준위 */
+  s += `<line x1="${x1}" y1="${CY_C}" x2="${x1+80}" y2="${CY_C}" stroke="${VIZ.ink}" stroke-width="2.4"/>`;
+  s += `<line x1="${x1}" y1="${CY_V}" x2="${x1+80}" y2="${CY_V}" stroke="${VIZ.ink}" stroke-width="2.4"/>`;
+  s += `<text x="${x1+86}" y="${CY_C+4}" font-size="11.5" font-weight="700" fill="${VIZ.sub}">빈 준위</text>`;
+  s += `<text x="${x1+86}" y="${CY_V+4}" font-size="11.5" font-weight="700" fill="${VIZ.sub}">가전자 준위</text>`;
+  s += `<text x="${x1+40}" y="${h-52}" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">고립된 원자 1개</text>`;
+
+  /* 실제 격자 간격 */
+  const XE=340;
+  const cB=at(XE,CY_C,S_C,false), vT=at(XE,CY_V,S_V,true);
+  s += `<line x1="${XE}" y1="40" x2="${XE}" y2="${h-60}" stroke="${VIZ.accent}" stroke-width="1.6" stroke-dasharray="5 4"/>`;
+  s += `<line x1="${XE}" y1="${cB.toFixed(1)}" x2="${XE}" y2="${vT.toFixed(1)}" stroke="${VIZ.accent}" stroke-width="2.4"/>`;
+  s += `<path d="M${XE-5} ${(cB+8).toFixed(1)} L${XE+5} ${(cB+8).toFixed(1)} L${XE} ${cB.toFixed(1)} Z" fill="${VIZ.accent}"/>`;
+  s += `<path d="M${XE-5} ${(vT-8).toFixed(1)} L${XE+5} ${(vT-8).toFixed(1)} L${XE} ${vT.toFixed(1)} Z" fill="${VIZ.accent}"/>`;
+  s += `<text x="${XE+10}" y="${((cB+vT)/2+5).toFixed(1)}" font-size="14" font-weight="800" fill="${VIZ.accent}">E&#8339;</text>`;
+  s += `<text x="${XE+10}" y="${((cB+vT)/2+22).toFixed(1)}" font-size="11" fill="${VIZ.accent}">밴드갭</text>`;
+  s += `<text x="${XE}" y="34" text-anchor="middle" font-size="11.5" font-weight="700" fill="${VIZ.accent}">실제 결정의 격자 간격</text>`;
+
+  s += `<text x="228" y="${at(250,CY_C,S_C,true).toFixed(1)}" font-size="12.5" font-weight="800" fill="${VIZ.ink}" dy="26">전도대</text>`;
+  s += `<text x="228" y="${at(250,CY_V,S_V,true).toFixed(1)}" font-size="12.5" font-weight="800" fill="${VIZ.ink}" dy="30">가전자대</text>`;
+
+  /* 축 */
+  s += `<line x1="170" y1="30" x2="170" y2="${h-56}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  s += `<path d="M165 34 L175 34 L170 24 Z" fill="${VIZ.axis}"/>`;
+  s += `<text x="150" y="${h-140}" text-anchor="middle" font-size="12" font-weight="700" fill="${VIZ.sub}" transform="rotate(-90 150 ${h-140})">에너지</text>`;
+  s += `<line x1="170" y1="${h-56}" x2="770" y2="${h-56}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  s += `<path d="M766 ${h-61} L766 ${h-51} L776 ${h-56} Z" fill="${VIZ.axis}"/>`;
+  s += `<text x="470" y="${h-34}" text-anchor="middle" font-size="12" fill="${VIZ.sub}">원자 사이의 거리 →　(왼쪽으로 갈수록 원자들이 가까워져 결정이 된다)</text>`;
+  s += `<text x="230" y="${h-72}" font-size="11.5" fill="${VIZ.muted}">← 결정(고체)</text>`;
+  return s+"</svg>";
+}
+
+/* ── 도체 · 반도체 · 절연체 ── */
+function bandTypes(){
+  const w=820, h=344, vT=200, vB=258;
+  const cols=[
+    {cx:150, t:"도체", cT:150, cB:vT, g:"밴드갭 없음 (겹침)", note:"전자가 곧바로 움직인다", c:"#2a78d6"},
+    {cx:410, t:"반도체", cT:112, cB:168, g:"E&#8339; ≈ 1.12 eV (Si)", note:"열·빛·전압으로 넘어갈 수 있다", c:"#2f6bff", hl:true},
+    {cx:670, t:"절연체", cT:52, cB:120, g:"E&#8339; ≈ 5.5 eV (다이아몬드)", note:"현실적으로 넘을 수 없다", c:"#7b8794"},
+  ];
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="도체 반도체 절연체의 에너지 밴드 비교">`;
+  cols.forEach(o=>{
+    const W=150, x=o.cx-W/2;
+    s += `<text x="${o.cx}" y="32" text-anchor="middle" font-size="15" font-weight="800" fill="${o.hl?VIZ.accent:VIZ.ink}">${o.t}</text>`;
+    s += `<rect x="${x}" y="${o.cT}" width="${W}" height="${o.cB-o.cT}" rx="4" fill="#dcebfb" stroke="${o.c}" stroke-width="1.6"/>`;
+    s += `<text x="${o.cx}" y="${(o.cT+o.cB)/2+4}" text-anchor="middle" font-size="12" font-weight="700" fill="${VIZ.sub}">전도대</text>`;
+    s += `<rect x="${x}" y="${vT}" width="${W}" height="${vB-vT}" rx="4" fill="${o.c}" stroke="${o.c}" stroke-width="1.6"/>`;
+    s += `<text x="${o.cx}" y="${(vT+vB)/2+4}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">가전자대</text>`;
+    if(o.cB < vT){
+      s += `<line x1="${x+W+12}" y1="${o.cB}" x2="${x+W+12}" y2="${vT}" stroke="${o.c}" stroke-width="1.6"/>`;
+      s += `<line x1="${x+W+7}" y1="${o.cB}" x2="${x+W+17}" y2="${o.cB}" stroke="${o.c}" stroke-width="1.6"/>`;
+      s += `<line x1="${x+W+7}" y1="${vT}" x2="${x+W+17}" y2="${vT}" stroke="${o.c}" stroke-width="1.6"/>`;
+    }
+    s += `<text x="${o.cx}" y="${vB+26}" text-anchor="middle" font-size="12" font-weight="800" fill="${o.hl?VIZ.accent:VIZ.sub}">${o.g}</text>`;
+    s += `<text x="${o.cx}" y="${vB+44}" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">${o.note}</text>`;
+  });
+  /* 반도체에서 전자가 밴드갭을 넘는 모습 */
+  s += `<line x1="410" y1="198" x2="410" y2="174" stroke="#e8552d" stroke-width="2.2" stroke-dasharray="3 3"/>`;
+  s += `<path d="M405 176 L415 176 L410 166 Z" fill="#e8552d"/>`;
+  s += `<circle cx="410" cy="200" r="5" fill="#e8552d" stroke="#fff" stroke-width="1.2"/>`;
+  s += `<text x="410" y="${h-12}" text-anchor="middle" font-size="12" fill="${VIZ.muted}">밴드갭의 크기 하나가 도체·반도체·절연체를 가릅니다. 반도체만 '켜고 끌 수 있다'는 것이 소자의 출발점입니다.</text>`;
+  return s+"</svg>";
+}
+
+const DOPANTS = [
+  ["인 (P)", "n형 · 도너", "0.045 eV"],
+  ["비소 (As)", "n형 · 도너", "0.054 eV"],
+  ["안티모니 (Sb)", "n형 · 도너", "0.039 eV"],
+  ["붕소 (B)", "p형 · 억셉터", "0.045 eV"],
+  ["알루미늄 (Al)", "p형 · 억셉터", "0.067 eV"],
+  ["갈륨 (Ga)", "p형 · 억셉터", "0.072 eV"],
+];
+
+const PHYS_ENG = [
+  ["목표", "자연의 근본 원리와 진실(Truth)", "예측 가능성(Predictability)과 제어(Control)"],
+  ["태도", "모형의 한계를 넘어 더 깊이 파고든다", "목적에 필요한 최소한의 복잡성만 채택한다"],
+  ["전자를 보는 법", "3차원 확률분포 ψ · 오비탈 · 양자장론", "에너지 준위와 전류가 흐르는 방향"],
+  ["전자기 현상", "맥스웰 방정식을 푼다", "옴의 법칙과 KCL·KVL로 압축한다"],
+  ["원자모형", "보어 모형은 폐기된 근사다", "보어의 에너지 사다리는 여전히 유효한 도구다", true],
+];
+
+const ATOM_ERAS = [
+  {y:"1803", t:"돌턴 — 원자설", d:"물질은 더 쪼갤 수 없는 원자로 되어 있다는 가설. 배수비례의 법칙 같은 정량적 화학 법칙이 근거였습니다. 원자의 <b>실재</b>가 확정된 것은 한참 뒤인 1905년 아인슈타인의 브라운 운동 이론과 1908년 페랭의 실험에 의해서입니다."},
+  {y:"1897 · 1904", t:"톰슨 — 푸딩 모형", d:"음극선 실험으로 <b>전자</b>를 발견하고 전하 대 질량비(e/m)를 측정했습니다. 원자가 전기적으로 중성이려면 (+)전하 바탕이 있어야 하므로, 양전하 덩어리 속에 전자가 건포도처럼 박힌 모형을 제안했습니다."},
+  {y:"1909 – 1911", t:"러더퍼드 — 핵 모형", d:"가이거·마스덴의 금박 산란 실험에서 <b>α 입자 8,000개 중 1개꼴로 90° 이상 튕겨</b> 나왔습니다. 푸딩 모형으로는 절대 불가능한 결과 — 질량과 (+)전하가 원자 중심의 극히 좁은 영역(원자 지름의 약 1만분의 1)에 몰려 있다는 결론입니다.", hl:true},
+  {y:"1913", t:"보어 — 양자 조건", d:"러더퍼드 모형의 치명적 결함 두 가지(전자가 10⁻¹¹초 만에 핵으로 추락해야 함, 스펙트럼이 연속이어야 함)를 <b>각운동량 양자화</b> mvr = n·h/2π 가정으로 해결했습니다. 수소의 선 스펙트럼 파장을 정확히 계산해 냈습니다.", hl:true},
+  {y:"1924", t:"드브로이 — 물질파", d:"전자도 파동성을 가진다(λ = h/mv). 보어가 '가정'했던 양자 조건이, 궤도 둘레가 파장의 정수배여야 한다는 <b>정상파 조건</b>에서 자연스럽게 유도됩니다."},
+  {y:"1926 – 1927", t:"슈뢰딩거 · 하이젠베르크", d:"파동함수 ψ와 슈뢰딩거 방정식이 등장하고, 하이젠베르크의 <b>불확정성 원리</b>가 '궤도'라는 개념 자체를 폐기시킵니다. 전자의 위치는 확률분포 |ψ|²로만 말할 수 있습니다 — 현재의 전자구름모형입니다.", hl:true},
+];
+
+const ATOM_COMPARE = [
+  ["돌턴", "화학 반응의 정량 법칙", "질량 보존·일정 성분비·배수비례", "원자 내부 구조, 전기적 현상"],
+  ["톰슨", "음극선 실험", "원자가 전자를 품고 있고 중성이라는 점", "α 입자의 큰 각 산란"],
+  ["러더퍼드", "금박 α 산란 실험", "원자핵의 존재와 원자 내부의 빈 공간", "원자의 안정성, 선 스펙트럼"],
+  ["보어", "수소 선 스펙트럼", "수소의 스펙트럼 파장, 원자의 안정성", "전자 2개 이상인 원자, 스펙트럼 세기"],
+  ["현대(전자구름)", "슈뢰딩거 방정식·불확정성 원리", "다전자 원자, 화학 결합, 에너지 밴드", "— (현재까지 유효)", true],
+];
+
 const ATOM_LINKS = [
-  {u:"https://gooseskin.tistory.com/312", t:"원자 모형과 불확정성 원리",
-   s:"톰슨부터 보어까지의 흐름과, 하이젠베르크의 불확정성 원리가 왜 전자구름모형으로 이어지는지 정리한 글"},
+  {u:"https://gooseskin.tistory.com/312", t:"원자 모형과 불확정성 원리 (참고 출처)",
+   s:"이 페이지를 구성할 때 참고한 글. 톰슨~보어의 흐름과 불확정성 원리를 함께 다룹니다."},
+  {u:"https://ko.wikipedia.org/wiki/%EB%9F%AC%EB%8D%94%ED%8D%BC%EB%93%9C_%EC%82%B0%EB%9E%80", t:"러더퍼드 산란 (위키백과)",
+   s:"금박 실험의 수치와 산란 공식"},
+  {u:"https://ko.wikipedia.org/wiki/%EB%B6%88%ED%99%95%EC%A0%95%EC%84%B1_%EC%9B%90%EB%A6%AC", t:"불확정성 원리 (위키백과)",
+   s:"Δx·Δp ≥ ħ/2 의 의미와 흔한 오해"},
 ];
 
 function renderAtomModel(){
@@ -690,6 +1010,125 @@ function renderAtomModel(){
     <ol class="atom-list">
       ${ATOM_MODELS.map(m=>`<li><span class="am-tag">${m.n}</span>${m.d}</li>`).join("")}
     </ol>
+    <p class="mat-section-note">아래에서 각 모형이 <b>어떤 실험 때문에 무너지고 다음 모형으로 넘어갔는지</b> 차례로 살펴봅니다.
+    원자모형의 역사는 "더 정확한 그림을 상상해낸 역사"가 아니라, <b>기존 모형으로는 설명할 수 없는 실험 결과가 나올 때마다 어쩔 수 없이 바뀐 역사</b>입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🕰️ 모형이 바뀐 순간들</h3>
+    <div class="era-grid">
+      ${ATOM_ERAS.map(e=>`<div class="era-card${e.hl?" hl":""}"><span class="era-year">${e.y}</span><h4>${e.t}</h4><p>${e.d}</p></div>`).join("")}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎯 러더퍼드의 금박 실험 — 핵의 발견</h3>
+    <p class="mat-section-note">톰슨의 푸딩 모형이 맞다면 (+)전하가 원자 전체에 옅게 퍼져 있으므로, 무겁고 빠른 α 입자는 거의 휘지 않고 지나가야 합니다.
+    그런데 실제로는 일부가 <b>되튕겨 나왔습니다</b>. 러더퍼드는 이를 두고 "휴지에 15인치 포탄을 쐈는데 되돌아와 나를 맞힌 격"이라고 표현했습니다.</p>
+    <div class="chart-wrap">${rutherfordExp()}</div>
+    <p class="chart-note">계산해 보면 원자핵의 지름은 원자의 약 <b>1만분의 1</b>입니다. 원자를 축구장 크기로 키우면 핵은 그 한가운데 놓인 <b>쌀알 한 톨</b> 정도이고, 나머지는 전부 빈 공간입니다.
+    우리가 벽을 통과하지 못하는 이유는 원자가 꽉 차 있어서가 아니라 전자들 사이의 전기적 반발력 때문입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>💡 보어 모형 — 선 스펙트럼이 강요한 양자화</h3>
+    <p class="mat-section-note">러더퍼드 모형에는 고전 전자기학과 정면으로 충돌하는 문제가 있었습니다.
+    원운동하는 전자는 <b>가속운동</b>을 하므로 전자기파를 방출해야 하고, 그러면 에너지를 잃고 약 <b>10⁻¹¹초</b> 만에 핵으로 떨어져야 합니다. 세상의 모든 원자가 순식간에 붕괴한다는 뜻이죠.
+    게다가 그 과정에서 방출되는 빛은 <b>연속 스펙트럼</b>이어야 하는데, 실제 수소 기체가 내는 빛은 <b>몇 개의 선</b>뿐이었습니다.</p>
+    <div class="chart-wrap">${hydrogenLevels()}</div>
+    <p class="chart-note">보어는 "특정 궤도에서는 전자가 빛을 내지 않는다(정상 상태)"와 "궤도를 갈아탈 때만 hf = E₂ − E₁ 만큼의 빛을 낸다"는 두 가정을 세웠습니다.
+    이렇게 하면 발머 계열 네 선의 파장이 <b>소수점 아래까지</b> 맞아떨어집니다. 가정은 임의로 보였지만 계산 결과가 실험과 정확히 일치했기에 받아들여진 것입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🌊 드브로이 — 왜 하필 정수배인가</h3>
+    <p class="mat-section-note">보어의 양자 조건 mvr = n·h/2π 는 한동안 "왜 그런지는 모르지만 맞는 식"이었습니다.
+    11년 뒤 드브로이가 전자에도 파장 <b>λ = h/mv</b> 가 있다고 제안하면서 이유가 드러납니다.
+    궤도 둘레가 파장의 정수배(2πr = nλ)일 때만 파가 자기 자신과 보강되어 살아남을 수 있고, 이 식을 정리하면 정확히 보어의 조건이 나옵니다.</p>
+    <div class="chart-wrap">${deBroglieWave()}</div>
+    <p class="chart-note">전자가 파동이라는 것은 상상이 아니라 실험 사실입니다. 1927년 데이비슨·거머는 니켈 결정에 전자빔을 쏘아 <b>빛과 똑같은 회절 무늬</b>를 얻었습니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🎲 불확정성 원리 — '궤도'라는 말이 폐기된 이유</h3>
+    <p class="mat-section-note">하이젠베르크는 위치와 운동량을 <b>동시에</b> 정확히 아는 것이 원리적으로 불가능함을 보였습니다.
+    측정 기술이 부족해서가 아니라, 파동으로서의 입자가 가진 본질입니다. 그런데 '궤도'란 매 순간의 위치와 속도를 모두 지정하는 개념이므로,
+    이 원리가 옳다면 <b>전자의 궤도라는 말 자체가 성립하지 않습니다</b>. 보어 모형의 동그란 궤도 그림이 사라진 이유입니다.</p>
+    <div class="chart-wrap">${uncertaintySlit()}</div>
+    <p class="chart-note">슬릿을 좁혀 전자의 위치를 정확히 알아내려 할수록, 뒤쪽 스크린의 회절 무늬는 오히려 넓게 퍼집니다 — 운동량의 불확정성이 커진 것입니다.
+    한쪽을 줄이면 반드시 다른 쪽이 늘어나며, 그 곱은 결코 ħ/2 아래로 내려가지 않습니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🔮 현대의 원자 — 궤도 대신 오비탈</h3>
+    <div class="chart-wrap">${orbitalShapes()}</div>
+    <p class="chart-note">현대의 원자 그림에는 선으로 된 궤도가 없고, 대신 <b>어디서 발견될 확률이 얼마나 높은지</b>를 나타내는 구름(오비탈)만 있습니다.
+    흥미로운 점은 수소 1s 오비탈에서 전자가 발견될 확률이 가장 높은 거리가 <b>0.529 Å</b>, 즉 보어가 계산한 반지름과 정확히 같다는 것입니다.
+    보어 모형은 틀린 그림이었지만 <b>쓸모 있는 근사</b>였던 셈입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>📋 다섯 모형 한눈에 비교</h3>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>모형</th><th>근거가 된 실험·이론</th><th>설명할 수 있었던 것</th><th>설명하지 못한 것</th></tr></thead>
+      <tbody>${ATOM_COMPARE.map(r=>`<tr${r[4]?' class="hl-row"':''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")}</tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>🎓 왜 이미 틀린 모형을 공대에서 아직도 배울까?</h3>
+    <p class="mat-section-note">여기까지 오면 당연히 이런 의문이 듭니다. <b>"보어 모형은 틀린 것으로 판명됐는데, 왜 전자공학 1장에서 또 보어 모형이 나올까?"</b><br>
+    실제로 반도체 소자 물리의 표준 교재들(Streetman, Neamen, Pierret)은 하나같이 1장 서두를 보어 모형과 수소 원자 에너지 준위 계산으로 시작합니다.
+    이것은 물리를 대충 가르치는 타협이 아니라, <b>공학적 추상화(Engineering Abstraction)</b>라는 분명한 선택입니다. 이유는 세 가지입니다.</p>
+
+    <p class="sub-h">① 보어의 '에너지 사다리'가 곧 밴드 다이어그램이다</p>
+    <p class="mat-section-note">보어 모형의 가장 큰 공학적 기여는 궤도 그림이 아니라 <b>"에너지는 불연속적인 층(level)으로 존재한다"</b>는 개념입니다.
+    파동함수 ψ는 전자의 3차원 공간 확률분포를 정확히 알려주지만, 소자를 해석하는 엔지니어에게 3차원 확률 구름은 불필요하게 복잡합니다.
+    우리에게 중요한 변수는 '전자가 공간의 어느 각도에 있는가'가 아니라 <b>'전자가 어떤 에너지 레벨에 있고, 전압이 걸리면 어느 방향으로 흐르는가'</b>이기 때문입니다.</p>
+    <p class="mat-section-note">원자가 결정 격자로 모이면 이웃한 원자들의 준위가 <b>파울리 배타 원리</b> 때문에 서로 밀어내며 촘촘하게 갈라집니다.
+    그 결과가 <b>가전자대 · 전도대 · 밴드갭(E<sub>g</sub>)</b>이라는, 보어의 사다리를 그대로 확장한 1차원 에너지 도로망입니다.</p>
+    <div class="chart-wrap">${bandSplit()}</div>
+    <p class="chart-note">고립된 원자 하나의 불연속 준위(오른쪽)가, 원자들이 가까워질수록 갈라져 폭을 가진 <b>밴드</b>가 됩니다.
+    실제 결정의 격자 간격에서 남아 있는 틈이 밴드갭입니다.</p>
+    <div class="chart-wrap">${bandTypes()}</div>
+    <p class="chart-note">1장에서 배우는 Si·Ge·GaAs의 차이, n형·p형, 공유결합은 전부 이 그림 위에서 이야기됩니다.
+    실리콘의 최외각 전자가 <b>4개</b>라는 사실 하나가 반도체 산업 전체의 출발점입니다.</p>
+
+    <p class="sub-h">② 도핑 계산에 보어의 공식을 그대로 가져다 쓴다</p>
+    <p class="mat-section-note">보어 모형은 비유에 그치지 않습니다. 실리콘에 인(P, 5족)을 도핑하면 결합에 쓰이지 못한 전자 하나가 P⁺ 이온에 약하게 묶이는데,
+    이 관계는 <b>핵 하나에 전자 하나</b>라는 점에서 수소 원자와 구조가 같습니다. 그래서 보어의 결합 에너지 식을 그대로 쓰되,
+    진공 대신 실리콘의 <b>비유전율 ε<sub>r</sub> ≈ 11.7</b>과 전자의 <b>유효 질량 m*</b>를 넣습니다.</p>
+    <div class="calc">
+      <span class="eq">E&#8340; = 13.6 eV × (m*/m₀) / ε&#8341;²</span>
+      실리콘: m*/m₀ ≈ <span class="num">0.26</span>, ε<sub>r</sub> = <span class="num">11.7</span> 이므로<br>
+      E<sub>d</sub> ≈ 13.6 × 0.26 / 11.7² ≈ <span class="num">0.026 eV</span> — 실측값은 <span class="num">0.04 ~ 0.05 eV</span> 수준입니다.
+      <p class="calc-note">한 줄짜리 근사식이 실측값과 <b>같은 자릿수</b>로 맞아떨어집니다. 무엇보다 중요한 것은 이 값이 실리콘의 밴드갭 1.12 eV의 <b>약 1/25</b>밖에 안 된다는 점 —
+      도펀트 준위가 밴드 가장자리에 아주 가까이 붙어 있는 <b>얕은 준위(shallow level)</b>라는 뜻이고, 그래서 상온에서 도펀트는 사실상 전부 이온화되어 캐리어를 내놓습니다.
+      상온의 열에너지는 kT ≈ 0.026 eV입니다.</p>
+    </div>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>불순물</th><th>종류</th><th>이온화 에너지 (실리콘 기준)</th></tr></thead>
+      <tbody>${DOPANTS.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="mat-section-note">※ 밴드갭(1.12 eV)에 비해 모두 <b>수십 분의 1</b> 수준입니다. 4장의 바이어싱, 5장의 소신호 해석이 "도펀트는 전부 이온화되어 있다"는 전제 위에서
+    출발할 수 있는 근거가 바로 이 표입니다.</p>
+
+    <p class="sub-h">③ 공학은 '불필요한 자유도'를 덜어내는 일이다</p>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>　</th><th>물리학 (Physics)</th><th>공학 (Engineering)</th></tr></thead>
+      <tbody>${PHYS_ENG.map(r=>`<tr${r[3]?' class="hl-row"':''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="mat-section-note">회로를 해석할 때 우리는 맥스웰 방정식을 풀지 않고 옴의 법칙과 KCL·KVL을 씁니다.
+    맥스웰 방정식이 틀려서가 아니라, 회로 크기가 파장보다 훨씬 작을 때는 그 압축된 모델만으로 <b>정확히 예측하고 설계할 수 있기</b> 때문입니다.
+    소자 수준에서도 마찬가지로, 보어가 준 에너지 준위 직관만으로 다이오드·BJT·MOSFET의 기본 동작을 완전히 설계할 수 있습니다.</p>
+
+    <div class="quote">
+      물리학과에서는 전자가 어디에 있는지 3차원 공간 확률(오비탈)을 끝까지 추적합니다.
+      하지만 우리 반도체 엔지니어에게 중요한 것은 <b>"이 전자가 에너지를 얼마나 가졌고, 밴드갭을 넘어 전류로 흐를 수 있는가"</b>입니다.<br>
+      보어 모형은 복잡한 3차원 구름을 <b>'에너지 사다리'</b>라는 간결한 도구로 압축해 준 모델입니다.
+      실제로 실리콘에 불순물을 넣었을 때 얼마의 에너지가 필요한지 계산할 때도 우리는 여전히 보어의 수소 방정식을 가져다 씁니다.<br>
+      자연의 완벽한 묘사보다 <b>'현상을 정확히 예측하고 제어할 수 있는 가장 효율적인 모델'</b>을 선택하는 것 — 그것이 바로 <b>공학적 추상화</b>입니다.
+    </div>
   </div>
 
   <div class="card">
