@@ -592,6 +592,7 @@ function renderMaterial(m){
 
 /* ───────── 고정 자료: 원자모델 ───────── */
 const ATOM_VIDEOS = [
+  {id:"I6S39MzuYdk", t:"EBS 클립뱅크 - 원자 모형의 변천(Change in Atom Models)"},
   {id:"-T-k9e5L1Oo", t:"그럼 진짜 원자는 도대체 어떻게 생겼음??"},
   {id:"3YBy-Yu9OIw", t:"인간이 만든 특수 카메라가 촬영한 원자 내부의 실제 모습"},
   {id:"4t7axgwScvY", t:"세상은 무엇으로 이루어져 있을까? 빛의 물리학 '빛과 원자'"},
@@ -672,6 +673,11 @@ const ATOM_MODELS = [
   {n:"현재모형", d:"핵 주위의 전자를 확률 분포에 따라 나타내게 하는 <span class=\"am-key\">전자구름모형</span>이다."},
 ];
 
+const ATOM_LINKS = [
+  {u:"https://gooseskin.tistory.com/312", t:"원자 모형과 불확정성 원리",
+   s:"톰슨부터 보어까지의 흐름과, 하이젠베르크의 불확정성 원리가 왜 전자구름모형으로 이어지는지 정리한 글"},
+];
+
 function renderAtomModel(){
   return `
   <span class="ch-eyebrow">추가 자료</span>
@@ -696,6 +702,13 @@ function renderAtomModel(){
             allowfullscreen></iframe>
           <div class="yt-cap"><span>${esc(v.t)}</span></div>
         </div>`).join("")}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📚 읽을거리</h3>
+    <div class="link-cards">
+      ${ATOM_LINKS.map(l=>`<a class="link-card" href="${l.u}" target="_blank" rel="noopener"><b>${esc(l.t)}</b><span>${esc(l.s)}</span></a>`).join("")}
     </div>
   </div>`;
 }
