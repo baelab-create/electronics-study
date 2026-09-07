@@ -296,6 +296,7 @@ const CHAPTERS = [
 const MATERIALS = [
   {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지", icon:"📘"},
   {id:"electricity-flow", title:"전기는 흐르지 않는다", sub:"전자의 속도와 에너지의 정체", icon:"⚡"},
+  {id:"atom-model", title:"원자모델", sub:"준비 중", icon:"⚛️"},
 ];
 
 const LS_KEY = "elec-custom-pages-v1";
@@ -566,7 +567,21 @@ const NODE_TABLE = [
 
 function renderMaterial(m){
   if(m.id === "electricity-flow") return renderElectricityFlow();
+  if(m.id === "atom-model") return renderAtomModel();
   return renderSemiHistory();
+}
+
+/* ───────── 고정 자료: 원자모델 (준비 중) ───────── */
+function renderAtomModel(){
+  return `
+  <span class="ch-eyebrow">추가 자료</span>
+  <h2 class="ch-title">원자모델</h2>
+  <p class="ch-sub">Atomic Models</p>
+
+  <div class="card">
+    <h3>⚛️ 준비 중입니다</h3>
+    <p class="empty">이 페이지는 아직 내용이 없습니다. 곧 자료가 올라갈 예정입니다.</p>
+  </div>`;
 }
 
 function renderSemiHistory(){
