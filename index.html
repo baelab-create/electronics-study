@@ -189,6 +189,32 @@
   .mat-table tr.hl-row td{background:#eef3ff;}
   .mat-section-note{font-size:13px; color:var(--muted); margin-top:14px; line-height:1.7;}
 
+  /* ───────── 고정 자료 페이지 (전기는 흐르지 않는다) ───────── */
+  .fact-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px;}
+  .fact-card{border:1px solid var(--line); border-radius:var(--radius); padding:16px 20px;}
+  .fact-card.myth{background:#fff6f5; border-color:#f2d6d2;}
+  .fact-card.truth{background:#f1f6ff; border-color:#cfdefa;}
+  .fact-tag{display:inline-block; font-size:11.5px; font-weight:800; letter-spacing:.06em; padding:4px 10px; border-radius:999px;}
+  .fact-card.myth .fact-tag{background:#fadedb; color:#a3423c;}
+  .fact-card.truth .fact-tag{background:#dbe7ff; color:#25519e;}
+  .fact-card p{font-size:13.8px; line-height:1.72; color:#3f4855; margin-top:9px;}
+  .calc{
+    background:#f7f9fc; border:1px solid var(--line); border-radius:12px;
+    padding:16px 20px; margin-top:16px; font-size:14px; line-height:1.85; color:#3f4855;
+  }
+  .calc .eq{display:block; font-size:16px; font-weight:800; color:var(--ink); margin-bottom:8px; letter-spacing:.01em;}
+  .calc .num{font-variant-numeric:tabular-nums; font-weight:700; color:var(--accent-ink);}
+  .calc-note{font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.6;}
+  .link-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-top:16px;}
+  .link-card{
+    display:block; border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+    background:var(--panel); text-decoration:none; color:inherit; transition:.15s;
+  }
+  .link-card:hover{border-color:var(--accent); box-shadow:0 4px 14px rgba(47,107,255,.12);}
+  .link-card b{display:block; font-size:14px; font-weight:800;}
+  .link-card span{display:block; font-size:12.5px; color:var(--muted); margin-top:4px; line-height:1.55;}
+  @media (max-width:820px){ .fact-grid{grid-template-columns:1fr;} }
+
   /* ───────── 레이저 포인터 ───────── */
   #laserBtn{
     position:fixed; right:22px; bottom:22px; z-index:1000;
@@ -268,7 +294,8 @@ const CHAPTERS = [
 
 /* 고정 자료 페이지 (모든 학생에게 보임) */
 const MATERIALS = [
-  {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지"},
+  {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지", icon:"📘"},
+  {id:"electricity-flow", title:"전기는 흐르지 않는다", sub:"전자의 속도와 에너지의 정체", icon:"⚡"},
 ];
 
 const LS_KEY = "elec-custom-pages-v1";
@@ -308,7 +335,7 @@ function renderNav(){
   MATERIALS.forEach(m=>{
     const b = document.createElement("button");
     b.className = "nav-item" + (current.type==="material"&&current.id===m.id ? " active":"");
-    b.innerHTML = `<span class="chip">📘</span><span class="t">${m.title}<small>${m.sub}</small></span>`;
+    b.innerHTML = `<span class="chip">${m.icon||"📘"}</span><span class="t">${m.title}<small>${m.sub}</small></span>`;
     b.onclick = ()=>{ current={type:"material",id:m.id}; render(); };
     cNav.appendChild(b);
   });
@@ -538,6 +565,11 @@ const NODE_TABLE = [
 ];
 
 function renderMaterial(m){
+  if(m.id === "electricity-flow") return renderElectricityFlow();
+  return renderSemiHistory();
+}
+
+function renderSemiHistory(){
   return `
   <span class="ch-eyebrow">추가 자료</span>
   <h2 class="ch-title">반도체 발전사 — 진공관에서 2nm까지</h2>
@@ -589,6 +621,203 @@ function renderMaterial(m){
       <tbody>${NODE_TABLE.map(r=>`<tr${r[3]?' class="hl-row"':''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody>
     </table></div>
     <p class="mat-section-note">※ 양산 시기는 대표 제품 기준의 근사치입니다. 같은 노드라도 제조사(인텔·삼성·TSMC)마다 실제 치수와 시기가 다릅니다.</p>
+  </div>`;
+}
+
+/* ───────── 고정 자료: 전기는 흐르지 않는다 ───────── */
+const SPEEDS = [
+  {v:7.4e-5, t:"전자 드리프트",   d:"약 0.07 mm/s",       up:true,  hl:true},
+  {v:1.0e-3, t:"달팽이",          d:"약 1 mm/s",          up:false},
+  {v:1.4,    t:"사람의 걸음",     d:"1.4 m/s",            up:true},
+  {v:343,    t:"소리(공기 중)",   d:"343 m/s",            up:false},
+  {v:1.6e6,  t:"전자의 열운동",   d:"약 1.6×10⁶ m/s",     up:true},
+  {v:2.4e8,  t:"전기 신호",       d:"빛 속도의 50~99%",   up:false, hl:true},
+];
+
+function speedLadder(){
+  const w=820, h=250, p={l:58,r:58}, axY=138;
+  const x0=Math.log10(1e-5), x1=Math.log10(1e9);
+  const x = v => p.l + (Math.log10(v)-x0)/(x1-x0)*(w-p.l-p.r);
+  const ticks=[[1e-4,"0.1mm/s"],[1e-2,"1cm/s"],[1,"1m/s"],[1e2,"100m/s"],[1e4,"10km/s"],[1e6,"1,000km/s"],[1e8,"10만km/s"]];
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="전자의 드리프트 속도와 전기 신호 전파 속도 비교">`;
+  s += `<line x1="${p.l}" y1="${axY}" x2="${w-p.r}" y2="${axY}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  ticks.forEach(([v,t])=>{
+    s += `<line x1="${x(v)}" y1="${axY-4}" x2="${x(v)}" y2="${axY+4}" stroke="${VIZ.axis}" stroke-width="1"/>`;
+    s += `<text x="${x(v)}" y="${axY+40}" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">${t}</text>`;
+  });
+  SPEEDS.forEach(it=>{
+    const cx=x(it.v), c=it.hl?VIZ.accent:VIZ.blue;
+    const ly = it.up ? axY-52 : axY+62;
+    s += `<line x1="${cx}" y1="${axY}" x2="${cx}" y2="${it.up?axY-34:axY+52}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3"/>`;
+    s += `<circle cx="${cx}" cy="${axY}" r="${it.hl?7:5}" fill="${c}" stroke="#fff" stroke-width="2"><title>${it.t} · ${it.d}</title></circle>`;
+    s += `<text x="${cx}" y="${it.up?ly-14:ly}" text-anchor="middle" font-size="${it.hl?13:12}" font-weight="${it.hl?800:700}" fill="${it.hl?VIZ.accent:VIZ.ink}">${it.t}</text>`;
+    s += `<text x="${cx}" y="${it.up?ly:ly+15}" text-anchor="middle" font-size="11" fill="${VIZ.sub}">${it.d}</text>`;
+  });
+  return s+"</svg>";
+}
+
+/* 도선 사이 공간의 전자기장으로 에너지가 전달되는 모습 */
+function fieldDiagram(){
+  const w=820, h=340, yT=120, yB=250, xL=130, xR=700;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="전지에서 전구로, 도선 사이 공간의 전자기장을 통해 에너지가 전달되는 모습">`;
+  s += `<defs>`;
+  s += `<marker id="efA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="${VIZ.accent}"/></marker>`;
+  s += `<marker id="efB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="${VIZ.sub}"/></marker>`;
+  s += `<marker id="efC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8fb0e4"/></marker>`;
+  s += `</defs>`;
+
+  /* 도선 사이 = 전자기장이 채워진 공간 */
+  s += `<rect x="${xL}" y="${yT}" width="${xR-xL}" height="${yB-yT}" fill="#eef3ff"/>`;
+  [180,260,340,420,500,580,660].forEach(x=>{
+    s += `<line x1="${x}" y1="${yT+8}" x2="${x}" y2="${yB-32}" stroke="#93b5e8" stroke-width="1.3" stroke-dasharray="4 4" marker-end="url(#efC)"/>`;
+  });
+  [235,375,515,655].forEach(x=>{
+    s += `<circle cx="${x}" cy="${yT+22}" r="7" fill="#fff" stroke="${VIZ.sub}" stroke-width="1.2"/>`;
+    s += `<path d="M${x-4.5} ${yT+17.5} L${x+4.5} ${yT+26.5} M${x+4.5} ${yT+17.5} L${x-4.5} ${yT+26.5}" stroke="${VIZ.sub}" stroke-width="1.2"/>`;
+  });
+  s += `<text x="435" y="${yT+56}" text-anchor="middle" font-size="13.5" font-weight="800" fill="${VIZ.accent}">에너지 흐름  S = E × H</text>`;
+  [[200,330],[370,500],[540,670]].forEach(([a,b])=>{
+    s += `<line x1="${a}" y1="${yT+76}" x2="${b}" y2="${yT+76}" stroke="${VIZ.accent}" stroke-width="3" marker-end="url(#efA)"/>`;
+  });
+  s += `<text x="435" y="${yB-14}" text-anchor="middle" font-size="12" fill="${VIZ.sub}">도선은 이 흐름을 안내하는 '레일'입니다</text>`;
+
+  /* 도선 */
+  s += `<line x1="${xL}" y1="${yT}" x2="${xR}" y2="${yT}" stroke="${VIZ.ink}" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<line x1="${xL}" y1="${yB}" x2="${xR}" y2="${yB}" stroke="${VIZ.ink}" stroke-width="5" stroke-linecap="round"/>`;
+
+  /* 전지 */
+  s += `<line x1="${xL}" y1="${yT}" x2="${xL}" y2="178" stroke="${VIZ.ink}" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<line x1="${xL}" y1="192" x2="${xL}" y2="${yB}" stroke="${VIZ.ink}" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<line x1="${xL-22}" y1="178" x2="${xL+22}" y2="178" stroke="${VIZ.ink}" stroke-width="3.5"/>`;
+  s += `<line x1="${xL-12}" y1="192" x2="${xL+12}" y2="192" stroke="${VIZ.ink}" stroke-width="3.5"/>`;
+  s += `<text x="${xL-32}" y="172" text-anchor="end" font-size="14" font-weight="800" fill="${VIZ.ink}">＋</text>`;
+  s += `<text x="${xL-32}" y="200" text-anchor="end" font-size="14" font-weight="800" fill="${VIZ.ink}">－</text>`;
+
+  /* 전구 */
+  s += `<line x1="${xR}" y1="${yT}" x2="${xR}" y2="161" stroke="${VIZ.ink}" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<line x1="${xR}" y1="209" x2="${xR}" y2="${yB}" stroke="${VIZ.ink}" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<circle cx="${xR}" cy="185" r="24" fill="#fffbe8" stroke="${VIZ.ink}" stroke-width="2.5"/>`;
+  s += `<path d="M${xR-15} 170 L${xR+15} 200 M${xR+15} 170 L${xR-15} 200" stroke="${VIZ.ink}" stroke-width="2"/>`;
+  s += `<text x="${xR+34}" y="190" font-size="12.5" font-weight="700" fill="${VIZ.ink}">전구</text>`;
+
+  /* 도선 위: 관용 전류 / 전자 드리프트 */
+  s += `<line x1="230" y1="95" x2="320" y2="95" stroke="${VIZ.sub}" stroke-width="2" marker-end="url(#efB)"/>`;
+  s += `<text x="330" y="99" font-size="12.5" font-weight="700" fill="${VIZ.sub}">I (관용 전류)</text>`;
+  s += `<line x1="600" y1="95" x2="530" y2="95" stroke="${VIZ.sub}" stroke-width="2" marker-end="url(#efB)"/>`;
+  s += `<text x="610" y="99" font-size="12.5" font-weight="700" fill="${VIZ.sub}">e⁻ 약 0.07 mm/s</text>`;
+
+  /* 범례 */
+  s += `<text x="435" y="292" text-anchor="middle" font-size="12" fill="${VIZ.muted}">점선 화살표 = 전기장 E · ⊗ = 지면 안쪽으로 들어가는 자기장 B · 굵은 화살표 = 포인팅 벡터 S</text>`;
+  s += `<text x="435" y="313" text-anchor="middle" font-size="12" fill="${VIZ.muted}">전자는 도선 안에서 느리게 밀려갈 뿐이고, 에너지는 도선 바깥 공간의 장을 타고 전구로 갑니다.</text>`;
+  return s+"</svg>";
+}
+
+const EF_PAIRS = [
+  {m:"전기는 도선 속을 빠르게 달리는 전자다.",
+   t:"구리 도선 속 전자는 <b>1시간에 약 27cm</b> 움직입니다. 전원에서 출발해 전구까지 '달려가는' 전자는 없습니다."},
+  {m:"스위치를 켜면 전자가 전구까지 가서 불이 켜진다.",
+   t:"전구 안에는 전자가 <b>이미 가득</b> 차 있습니다. 스위치가 하는 일은 전자를 보내는 것이 아니라, 회로 전체에 <b>전기장을 세우는</b> 것입니다."},
+  {m:"에너지는 구리 도선 '안'으로 전달된다.",
+   t:"에너지는 도선 <b>주변 공간</b>의 전자기장을 타고 흐릅니다(포인팅 벡터 S = E × H). 도선은 그 흐름을 안내하는 레일에 가깝습니다."},
+  {m:"교류에서도 전자가 전원에서 부하까지 이동한다.",
+   t:"60Hz 교류에서 전자는 <b>0.3µm 남짓</b>을 앞뒤로 진동할 뿐 사실상 제자리입니다. 그런데도 전력은 완전하게 전달됩니다."},
+];
+
+const EF_TABLE = [
+  ["드리프트 속도", "약 7×10⁻⁵ m/s", "전기장에 밀려 전자 집단이 한 방향으로 서서히 이동하는 속도. 전류의 크기를 결정합니다."],
+  ["열운동(페르미) 속도", "약 1.6×10⁶ m/s", "전기장이 없어도 전자가 무작위로 움직이는 속도. 방향이 제멋대로라 알짜 전류는 0입니다."],
+  ["신호 전파 속도", "약 1.5~3×10⁸ m/s", "전기장·자기장이 회로 전체에 자리 잡는 속도. 스위치를 켜자마자 불이 켜지는 이유입니다.", true],
+];
+
+const EF_LINKS = [
+  {u:"https://www.youtube.com/watch?v=bHIhgxav9LY", t:"The Biggest Misconception About Electricity", s:"Veritasium · 이 주제로 물리 교육계에서 큰 논쟁을 일으킨 영상 (영어, 자막 지원)"},
+  {u:"https://en.wikipedia.org/wiki/Poynting_vector", t:"Poynting vector (Wikipedia)", s:"에너지가 전자기장으로 전달된다는 것을 수식으로 정리한 문서"},
+  {u:"https://en.wikipedia.org/wiki/Drift_velocity", t:"Drift velocity (Wikipedia)", s:"v = I / (nqA) 유도 과정과 여러 도체의 실제 수치"},
+];
+
+function renderElectricityFlow(){
+  return `
+  <span class="ch-eyebrow">추가 자료</span>
+  <h2 class="ch-title">전기는 흐르지 않는다</h2>
+  <p class="ch-sub">The Speed of Electricity — 전자의 속도와 에너지의 정체</p>
+  <p class="mat-section-note">"전기가 흐른다"는 말은 우리가 매일 쓰는 표현이지만, 물리적으로는 상당히 어긋난 그림입니다.
+  스위치를 켜면 불은 <b>즉시</b> 켜지는데, 정작 도선 속 전자는 <b>걸어서도 앞지를 수 있을 만큼</b> 느리게 움직입니다.
+  그렇다면 전구를 켠 에너지는 무엇이, 어디로 전달한 걸까요? 1장의 전도 메커니즘을 한 단계 깊이 들여다보는 페이지입니다.</p>
+
+  <div class="card">
+    <h3>🐢 먼저, 전자는 얼마나 느린가</h3>
+    <div class="calc">
+      <span class="eq">v<sub>d</sub> = I / (n · q · A)</span>
+      단면적 <span class="num">1 mm²</span> 구리 도선에 <span class="num">1 A</span>를 흘릴 때 —
+      자유전자 밀도 n = <span class="num">8.5×10²⁸ /m³</span>, q = <span class="num">1.6×10⁻¹⁹ C</span> 이므로<br>
+      v<sub>d</sub> = 1 / (8.5×10²⁸ × 1.6×10⁻¹⁹ × 1×10⁻⁶) ≈ <span class="num">7.4×10⁻⁵ m/s</span>
+      = <span class="num">0.074 mm/s</span> — <b>1시간에 약 27cm</b>입니다.
+      <p class="calc-note">교실 앞 스위치에서 뒤쪽 형광등까지 10m라면, 그 전자가 실제로 도착하는 데 걸리는 시간은 약 <b>38시간</b>입니다. 이틀 뒤에 불이 켜지지는 않죠.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📏 세 가지 속도를 한 축에 놓아보면</h3>
+    <div class="chart-wrap">${speedLadder()}</div>
+    <p class="chart-note">가로축은 로그 스케일입니다. 전자 하나하나는 <b>매우 빠르게(열운동)</b> 그러나 <b>매우 느리게(드리프트)</b> 움직이고,
+    정작 전기 신호는 그 둘과 무관하게 <b>빛에 가까운 속도</b>로 전달됩니다. 점에 마우스를 올리면 값이 표시됩니다.</p>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>구분</th><th>크기</th><th>의미</th></tr></thead>
+      <tbody>${EF_TABLE.map(r=>`<tr${r[3]?' class="hl-row"':''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>⚡ 그러면 에너지는 어디로 전달되는가</h3>
+    <p class="mat-section-note">답은 <b>도선 속이 아니라 도선 사이의 공간</b>입니다.
+    전원이 만든 전기장 E와 전류가 만든 자기장 B(H)가 도선 주변 공간에 자리 잡으면,
+    그 둘의 외적인 <b>포인팅 벡터 S = E × H</b> 방향으로 에너지가 전원에서 부하 쪽으로 흘러갑니다.
+    도선 안으로 들어가는 성분만큼이 저항에서 열로 소비되는 전력(I²R)이 됩니다.</p>
+    <div class="chart-wrap">${fieldDiagram()}</div>
+    <p class="chart-note">그래서 스위치를 켜는 순간 필요한 것은 '전자의 이동'이 아니라 '장(field)의 확립'입니다.
+    장은 도선을 따라 빛 속도의 50~99%로 퍼지고, 그 순간부터 전구 안에 <b>이미 있던</b> 전자들이 제자리에서 밀리기 시작합니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🔍 흔한 오해와 실제</h3>
+    <div class="fact-grid">
+      ${EF_PAIRS.map(f=>`
+        <div class="fact-card myth"><span class="fact-tag">흔한 오해</span><p>${f.m}</p></div>
+        <div class="fact-card truth"><span class="fact-tag">실제</span><p>${f.t}</p></div>`).join("")}
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>⚠️ 그렇다고 "전자는 중요하지 않다"는 뜻은 아닙니다</h3>
+    <p>에너지를 나르는 것은 장이지만, <b>그 장을 만들고 유지하는 것은 전하의 배치와 이동</b>입니다.
+    도선 표면에 쌓인 전하가 회로 안쪽에 정확한 전기장을 만들어 주고, 전자의 드리프트가 자기장을 만들어 줍니다.
+    즉 "전자냐 장이냐"의 문제가 아니라, <b>전류는 전자의 이동으로 세고, 에너지는 장으로 나른다</b>고 정리하면 됩니다.
+    회로이론에서 배우는 V·I·R은 이 복잡한 장의 그림을 <b>회로의 크기가 신호의 파장보다 훨씬 작을 때</b>
+    아주 간단하게 요약한 근사입니다. 고주파로 갈수록 이 근사가 깨지면서 전송선 이론이 필요해집니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🔗 우리 수업과의 연결</h3>
+    <div class="era-grid">
+      <div class="era-card"><span class="era-year">Chapter 1</span><h4>반도체 안에서는 훨씬 빠르다</h4>
+      <p>반도체의 캐리어 농도는 금속보다 10⁶~10⁷배 낮습니다. 같은 전류를 흘리려면 캐리어가 그만큼 빨리 움직여야 하죠.
+      실리콘에 강한 전계가 걸리면 드리프트 속도는 약 10⁵ m/s(포화 드리프트 속도)에 이릅니다 — 구리 도선 속 전자보다 10억 배 빠릅니다.</p></div>
+      <div class="era-card"><span class="era-year">Chapter 1 · 2</span><h4>드리프트만이 아니라 확산도</h4>
+      <p>pn 접합에서는 전기장에 밀리는 <b>드리프트</b>와 농도 차로 퍼지는 <b>확산</b>이 함께 작용합니다.
+      다이오드가 꺼지는 속도는 전자가 이동한 거리가 아니라, 축적된 소수 캐리어가 사라지는 데 걸리는 시간(역회복시간 t<sub>rr</sub>)이 결정합니다.</p></div>
+      <div class="era-card"><span class="era-year">Chapter 5</span><h4>고주파에서 한계를 만드는 것</h4>
+      <p>AC 해석에서 주파수가 올라갈 때 이득이 떨어지는 원인은 '전자가 느려서'가 아니라 접합·기생 <b>커패시턴스</b>를 채우고 비우는 데 시간이 걸리기 때문입니다.
+      소자의 속도 한계는 전하와 장을 재배치하는 시간에서 옵니다.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📚 더 깊이 보고 싶다면</h3>
+    <div class="link-cards">
+      ${EF_LINKS.map(l=>`<a class="link-card" href="${l.u}" target="_blank" rel="noopener"><b>${l.t}</b><span>${l.s}</span></a>`).join("")}
+    </div>
+    <p class="mat-section-note">※ 이 주제는 표현을 두고 논쟁이 있었습니다. 핵심은 "전자가 안 움직인다"가 아니라
+    <b>"에너지 전달의 주체는 전자의 이동이 아니라 전자기장"</b>이라는 점입니다. 시험에서는 드리프트 속도 계산식과 세 속도의 구분을 정확히 알아두세요.</p>
   </div>`;
 }
 
@@ -744,11 +973,40 @@ function laserMove(x, y){
   laserDot.style.display = "block";
   laserDot.style.left = x+"px";
   laserDot.style.top = y+"px";
+  /* 펜슬은 touch/pointer 이벤트가 같은 좌표로 중복 발생 → 같은 점은 꼬리에 넣지 않음 */
+  const last = lpts[lpts.length - 1];
+  if(last && Math.abs(last.x - x) < 0.5 && Math.abs(last.y - y) < 0.5) return;
   lpts.push({x, y, t: performance.now()});
   if(lpts.length > 120) lpts.shift();
 }
+
+/* 애플 펜슬(스타일러스) = 레이저만 이동(스크롤 차단), 손가락 = 평소대로 스크롤 */
+function isStylus(t){ return !!t && t.touchType === "stylus"; }
+function onLaserBtn(el){ return !!(el && el.closest && el.closest("#laserBtn")); }
+
 document.addEventListener("mousemove", e=> laserMove(e.clientX, e.clientY));
-document.addEventListener("touchmove", e=>{ if(laserOn && e.touches[0]) laserMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+
+/* 펜슬 호버(지원 기기)에서도 포인터가 따라오도록 */
+document.addEventListener("pointermove", e=>{
+  if(laserOn && e.pointerType === "pen") laserMove(e.clientX, e.clientY);
+});
+
+/* passive:false 여야 preventDefault()로 스크롤을 막을 수 있다 */
+document.addEventListener("touchstart", e=>{
+  if(!laserOn) return;
+  const t = e.touches[0];
+  if(!isStylus(t) || onLaserBtn(e.target)) return;   /* 손가락·레이저 버튼은 그대로 */
+  e.preventDefault();                                /* 스크롤 시작 자체를 차단 */
+  laserMove(t.clientX, t.clientY);
+}, {passive:false});
+
+document.addEventListener("touchmove", e=>{
+  if(!laserOn) return;
+  const t = e.touches[0];
+  if(!isStylus(t)) return;                           /* 손가락 스크롤은 유지 */
+  e.preventDefault();
+  laserMove(t.clientX, t.clientY);
+}, {passive:false});
 document.addEventListener("keydown", e=>{
   const tag = (document.activeElement||{}).tagName;
   if(tag==="INPUT"||tag==="TEXTAREA") return;
