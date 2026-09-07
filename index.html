@@ -243,6 +243,54 @@
   }
   .quote b{color:var(--accent-ink);}
 
+  /* ───────── 아코디언 ───────── */
+  .acc-bar{display:flex; gap:8px; margin-top:20px;}
+  .acc-btn{
+    border:1px solid var(--line); background:var(--panel); color:#4a5462;
+    font-family:inherit; font-size:12.5px; font-weight:700; padding:7px 14px;
+    border-radius:999px; cursor:pointer; transition:.15s;
+  }
+  .acc-btn:hover{border-color:var(--accent); color:var(--accent-ink);}
+  details.acc > summary{
+    list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px;
+    font-size:15px; font-weight:800; color:var(--ink); user-select:none;
+  }
+  details.acc > summary::-webkit-details-marker{display:none;}
+  details.acc > summary::after{
+    content:"⌃"; margin-left:auto; color:var(--muted); font-size:15px;
+    display:inline-block; transform:rotate(180deg); transition:transform .15s;
+  }
+  details.acc:not([open]) > summary::after{transform:rotate(90deg);}
+  details.acc[open] > summary{margin-bottom:14px;}
+  details.acc > summary:hover{color:var(--accent-ink);}
+
+  /* ───────── 확인 문제 ───────── */
+  .quiz-item{padding:14px 0; border-bottom:1px solid var(--line);}
+  .quiz-item:last-child{border-bottom:0; padding-bottom:0;}
+  .quiz-q{display:flex; gap:11px; font-size:14.5px; line-height:1.72; color:#39424f;}
+  .quiz-no{
+    flex:none; width:25px; height:25px; border-radius:50%; background:var(--accent-soft);
+    color:var(--accent-ink); font-size:12.5px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+  .qa{margin:10px 0 0 36px;}
+  .qa > summary{
+    list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+    font-size:12.5px; font-weight:800; color:var(--accent-ink); background:var(--accent-soft);
+    padding:6px 13px; border-radius:999px; user-select:none;
+  }
+  .qa > summary::-webkit-details-marker{display:none;}
+  .qa[open] > summary{margin-bottom:10px;}
+  .qa .a{
+    font-size:14px; line-height:1.78; color:#39424f;
+    background:#f7f9fc; border:1px solid var(--line); border-radius:10px; padding:14px 17px;
+  }
+  .qa .a b{color:var(--accent-ink);}
+  .qa .pts{margin-top:11px; padding-top:11px; border-top:1px dashed var(--line); font-size:12.5px; color:var(--muted);}
+  .qa .pts b{color:#4a5462;}
+  .qa .pts ul{margin:6px 0 0 18px; line-height:1.75;}
+  .quiz-lead{font-size:13px; color:var(--muted); margin-top:6px; line-height:1.7;}
+
   /* ───────── 레이저 포인터 ───────── */
   #laserBtn{
     position:fixed; right:22px; bottom:22px; z-index:1000;
@@ -998,6 +1046,91 @@ const ATOM_LINKS = [
    s:"Δx·Δp ≥ ħ/2 의 의미와 흔한 오해"},
 ];
 
+const QUIZ_SHORT = [
+  {q:"러더퍼드의 금박 실험에서 ① α 입자 대부분이 그대로 통과한 것과 ② 8,000개 중 1개꼴로 90° 이상 튕겨 나온 것은 각각 무엇을 뜻하는가?",
+   a:"① 원자 내부는 <b>대부분 빈 공간</b>이다. ② 원자의 질량과 (+)전하가 원자 지름의 약 1만분의 1에 불과한 <b>원자핵</b>에 집중되어 있다."},
+  {q:"보어의 양자 조건을 식으로 쓰고, 드브로이는 이 조건을 어떻게 설명했는가?",
+   a:"<b>mvr = n·h/2π</b> (각운동량의 양자화). 드브로이는 전자에도 파장 λ = h/mv 가 있다고 보고, 궤도 둘레가 파장의 정수배(<b>2πr = nλ</b>)일 때만 정상파가 되어 살아남는다고 설명했다. 이 식을 정리하면 보어의 조건이 그대로 나온다."},
+  {q:"수소 원자의 에너지 준위 식을 쓰고, 바닥상태 에너지와 이온화 에너지를 답하시오.",
+   a:"<b>Eₙ = −13.6 / n² [eV]</b>. 바닥상태(n=1) 에너지는 <b>−13.6 eV</b>, 이 전자를 완전히 떼어내는 데 필요한 이온화 에너지는 <b>13.6 eV</b>이다."},
+  {q:"수소의 발머 계열이 가시광선 영역에 나타나는 이유는?",
+   a:"n ≥ 3 인 준위에서 <b>n = 2</b> 로 떨어지는 전이 계열이며, 그 에너지 차가 가시광 영역(약 410 ~ 656 nm)에 해당하기 때문이다. n=1로 떨어지는 라이먼 계열은 자외선, n=3으로 떨어지는 파셴 계열은 적외선이다."},
+  {q:"불확정성 원리를 식으로 쓰고, 이 원리 때문에 '전자의 궤도'라는 표현을 쓸 수 없는 이유를 설명하시오.",
+   a:"<b>Δx · Δp ≥ ħ/2 = h/4π</b>. 궤도란 매 순간의 위치와 운동량을 동시에 지정하는 개념인데, 그것이 원리적으로 불가능하므로 궤도라는 말 자체가 성립하지 않는다. 대신 확률밀도 <b>|ψ|²</b>로 나타낸 <b>오비탈</b>로 기술한다."},
+  {q:"고립된 원자의 불연속 에너지 준위가 결정 속에서 '에너지 밴드'로 바뀌는 원인은?",
+   a:"원자들이 가까워지면 전자의 파동함수가 서로 겹치는데, <b>파울리 배타 원리</b>에 의해 여러 전자가 같은 상태에 있을 수 없으므로 준위가 미세하게 갈라진다. 원자 수가 매우 많으므로 그 갈라진 준위들이 사실상 연속에 가까운 폭을 갖는 <b>밴드</b>가 된다."},
+  {q:"300 K에서 Si, Ge, GaAs의 밴드갭은 각각 얼마인가?",
+   a:"Si ≈ <b>1.12 eV</b>, Ge ≈ <b>0.67 eV</b>, GaAs ≈ <b>1.42 eV</b>. 밴드갭이 작은 Ge는 온도에 민감하고 누설전류가 크며, 밴드갭이 큰 GaAs는 고온·고주파·광소자에 유리하다."},
+  {q:"실리콘의 원자번호와 최외각(가전자) 전자 수는? 이 사실이 반도체에서 왜 중요한가?",
+   a:"원자번호 <b>14</b>, 최외각 전자 <b>4개</b>. 이웃한 4개의 원자와 <b>공유결합</b>하여 최외각을 8개로 채운 안정한 결정을 이룬다. 여기에 5족(P, As, Sb)을 넣으면 전자가 하나 남아 <b>n형</b>, 3족(B, Al, Ga)을 넣으면 정공이 생겨 <b>p형</b>이 된다."},
+  {q:"도체·반도체·절연체를 가르는 기준은 무엇이며, 각각의 밴드갭 특징은?",
+   a:"기준은 <b>밴드갭의 크기</b>이다. 도체는 가전자대와 전도대가 겹쳐 갭이 없고, 반도체는 약 1 eV 내외(Si 1.12 eV)여서 열·빛·전압으로 전자를 넘길 수 있으며, 절연체는 매우 커서(다이아몬드 ≈ 5.5 eV) 현실적으로 넘을 수 없다. <b>'켜고 끌 수 있다'</b>는 성질이 반도체만의 것이고, 그것이 소자의 출발점이다."},
+  {q:"실리콘에 인(P)을 도핑했을 때 도너 이온화 에너지는 대략 얼마이며, 왜 '얕은 준위(shallow level)'라고 부르는가?",
+   a:"약 <b>0.045 eV</b>. 실리콘 밴드갭 1.12 eV의 <b>약 1/25</b>에 불과해 도너 준위가 전도대 바로 아래에 붙어 있기 때문이다. 그래서 상온에서 대부분의 도너가 이온화되어 전자를 전도대에 내놓으며, 이후 단원의 해석은 <b>\"도펀트는 전부 이온화되어 있다\"</b>는 전제 위에서 이루어진다."},
+  {q:"상온에서 진성(intrinsic) 실리콘의 캐리어 농도는 대략 얼마이며, 온도가 올라가면 반도체의 저항은 어떻게 변하는가?",
+   a:"n<sub>i</sub> ≈ <b>1.5×10¹⁰ /cm³</b> — 구리의 자유전자 밀도(약 8.4×10²² /cm³)에 비하면 극히 작다. 온도가 오르면 공유결합이 깨져 캐리어가 급격히 늘어나므로 저항은 <b>감소</b>한다. 이것을 <b>부(−)의 온도계수</b>라 하며, 금속(양의 온도계수)과 반대다."},
+];
+
+const QUIZ_LONG = [
+  {q:"러더퍼드 원자모형이 가진 두 가지 치명적 결함을 쓰고, 보어가 이를 어떻게 해결했는지 서술하시오.",
+   a:"<b>결함 ①</b> 원운동하는 전자는 가속운동을 하므로 고전 전자기학에 따라 전자기파를 방출해야 하고, 에너지를 잃어 약 10⁻¹¹초 만에 핵으로 추락해야 한다. 즉 모든 원자가 순식간에 붕괴한다는 결론이 나온다.<br><b>결함 ②</b> 그렇게 에너지를 잃는 과정에서 나오는 빛은 파장이 연속적으로 변하는 <b>연속 스펙트럼</b>이어야 하는데, 실제 수소 기체가 내는 빛은 몇 개의 <b>선 스펙트럼</b>뿐이다.<br><br><b>보어의 해결</b> 두 가지 가정을 도입했다. 첫째, 각운동량이 mvr = n·h/2π 로 양자화된 특정 궤도(정상 상태)에서는 전자가 빛을 방출하지 않는다 — 이것으로 원자의 안정성을 설명했다. 둘째, 전자가 준위를 옮길 때만 두 준위의 에너지 차만큼(hf = E₂ − E₁) 빛을 방출·흡수한다 — 준위가 불연속이므로 방출되는 빛도 불연속인 선 스펙트럼이 된다. 이 모형으로 계산한 발머 계열의 파장은 실측과 소수점 아래까지 일치했다.",
+   pts:["결함 두 가지를 <b>가속운동에 의한 복사</b>와 <b>연속 스펙트럼</b>으로 정확히 지목했는가",
+        "정상 상태 가정과 전이 시 방출 가정을 <b>구분</b>해 서술했는가",
+        "양자 조건 식 mvr = n·h/2π 와 hf = E₂ − E₁ 을 제시했는가",
+        "실험(선 스펙트럼)과의 일치를 근거로 들었는가"]},
+
+  {q:"\"보어 모형은 틀린 것으로 판명되었다\"고 하면서도 반도체 공학에서는 여전히 보어 모형을 사용한다. 그 이유를 공학적 추상화(Engineering Abstraction) 관점에서 서술하시오.",
+   a:"보어 모형이 폐기된 것은 <b>전자가 원 궤도를 돈다</b>는 그림이지, <b>에너지는 불연속적인 준위로만 존재한다</b>는 개념이 아니다. 후자는 양자역학에서도 그대로 살아남았고, 반도체 공학이 필요로 하는 것은 정확히 그 개념이다.<br><br>소자를 해석할 때 우리가 답해야 할 질문은 '전자가 공간의 어느 각도에 있는가'가 아니라 <b>'전자가 어떤 에너지 레벨에 있고, 전압이 걸리면 어느 방향으로 흐르는가'</b>이다. 3차원 확률 구름은 이 질문에 답하는 데 불필요한 자유도이며, 보어의 '에너지 사다리'는 그 불필요한 부분을 덜어낸 압축 모델이다. 이것이 결정 격자에서 파울리 배타 원리와 결합해 가전자대·전도대·밴드갭이라는 1차원 에너지 다이어그램으로 확장된다.<br><br>같은 구조가 회로이론에도 있다. 우리는 회로를 풀 때 맥스웰 방정식을 풀지 않고 옴의 법칙과 KCL·KVL을 쓴다. 맥스웰 방정식이 틀려서가 아니라, 회로의 크기가 파장보다 훨씬 작은 조건에서는 압축된 모델만으로 정확히 예측하고 설계할 수 있기 때문이다. 물리학이 <b>진실</b>을 추구한다면 공학은 <b>예측과 제어</b>에 필요한 최소한의 복잡성을 채택한다. 보어 모형의 사용은 타협이 아니라 이 원칙에 따른 선택이다.",
+   pts:["폐기된 것은 <b>궤도 그림</b>이고 살아남은 것은 <b>에너지 양자화</b>라는 구분을 했는가",
+        "공학이 필요로 하는 질문(에너지 레벨과 전류 방향)을 명확히 제시했는가",
+        "밴드 다이어그램으로의 확장을 언급했는가",
+        "맥스웰 방정식 ↔ 회로이론 같은 <b>유사 사례</b>로 논지를 강화했는가"]},
+
+  {q:"고립된 원자의 에너지 준위가 결정 속에서 에너지 밴드로 바뀌는 과정을 설명하고, 이를 근거로 도체·반도체·절연체를 구분하시오.",
+   a:"고립된 원자 하나의 전자는 불연속적인 준위만 가질 수 있다. 원자들이 가까워져 결정을 이루면 이웃 원자의 파동함수가 겹치는데, <b>파울리 배타 원리</b>에 의해 두 전자가 같은 양자 상태를 가질 수 없으므로 원래 하나였던 준위가 미세하게 여러 개로 갈라진다. 결정 안에는 10²² 개 수준의 원자가 있으므로 갈라진 준위들이 사실상 연속에 가까운 폭을 가지게 되고, 이것이 <b>에너지 밴드</b>다. 전자가 채워진 가장 높은 밴드가 <b>가전자대</b>, 그 위의 비어 있는 밴드가 <b>전도대</b>이며, 그 사이에 전자가 존재할 수 없는 틈이 <b>밴드갭 E<sub>g</sub></b>이다.<br><br>전류가 흐르려면 전자가 <b>빈 상태로 옮겨 갈 수 있어야</b> 한다. 도체는 가전자대와 전도대가 겹쳐 있거나 가전자대가 부분적으로만 차 있어 전기장을 걸자마자 전자가 움직인다. 절연체는 밴드갭이 매우 커서(다이아몬드 ≈ 5.5 eV) 상온의 열에너지(kT ≈ 0.026 eV)로는 전자를 전도대로 올릴 수 없다. 반도체는 그 중간(Si 1.12 eV)으로, 상온에서도 일부 전자가 넘어가 약한 전도성을 보이며 <b>열·빛·전압·도핑으로 전도도를 조절할 수 있다</b>. 이 조절 가능성이 반도체를 소자로 만드는 근거다.",
+   pts:["파울리 배타 원리에 의한 <b>준위 분리</b>를 원인으로 제시했는가",
+        "가전자대·전도대·밴드갭을 정의했는가",
+        "전도의 조건을 <b>'옮겨 갈 빈 상태의 유무'</b>로 설명했는가",
+        "세 물질을 밴드갭 수치와 함께 구분하고, 반도체의 <b>조절 가능성</b>을 언급했는가"]},
+
+  {q:"보어의 수소 원자 모델을 이용해 실리콘 내 도너의 이온화 에너지를 추정하는 방법을 설명하고, 그 결과가 '상온에서 도펀트는 사실상 완전히 이온화된다'는 사실과 어떻게 연결되는지 논하시오.",
+   a:"실리콘 격자에 인(P, 5족)을 넣으면 4개는 공유결합에 쓰이고 <b>전자 하나가 남아</b> P⁺ 이온에 약하게 묶인다. 이는 '(+)전하 하나에 전자 하나'라는 점에서 수소 원자와 구조가 같으므로, 보어의 결합 에너지 식을 그대로 쓰되 두 가지를 바꾼다. ① 진공이 아니라 실리콘 안이므로 비유전율 <b>ε<sub>r</sub> ≈ 11.7</b>로 쿨롱 인력이 약해지고, ② 결정 안의 전자는 유효 질량 <b>m*</b>로 움직인다.<br><br><span style=\"font-weight:800\">E<sub>d</sub> = 13.6 eV × (m*/m₀) / ε<sub>r</sub>²</span><br>m*/m₀ ≈ 0.26 을 넣으면 E<sub>d</sub> ≈ 13.6 × 0.26 / 11.7² ≈ <b>0.026 eV</b>가 나오며, 실측값은 P 0.045 eV, As 0.054 eV, Sb 0.039 eV 수준이다. 한 줄짜리 근사식이 실측과 <b>같은 자릿수</b>로 맞는다는 점이 중요하다.<br><br>이 값의 의미는 절대적 크기보다 <b>밴드갭과의 비</b>에 있다. E<sub>d</sub> ≈ 0.045 eV는 실리콘 밴드갭 1.12 eV의 약 1/25에 불과하므로, 도너 준위는 전도대 바로 아래에 붙은 <b>얕은 준위</b>다. 상온의 열에너지 kT ≈ 0.026 eV는 밴드갭을 넘기기에는 턱없이 부족하지만 이 얕은 준위를 이온화시키기에는 충분하며, 전도대의 상태 수가 도너 수보다 훨씬 많다는 점까지 고려하면 상온에서 도너의 거의 전부가 이온화된다. 그 결과 <b>n ≈ N<sub>D</sub></b> 로 두고 해석할 수 있고, 이후 4장의 바이어싱과 5장의 소신호 해석이 모두 이 전제 위에서 성립한다.",
+   pts:["도너-전자 계를 <b>수소 원자로 근사</b>하는 논리를 제시했는가",
+        "ε<sub>r</sub>와 m*를 대입하는 두 가지 수정을 모두 설명했는가",
+        "계산값(≈0.026 eV)과 실측값(0.04~0.05 eV)을 구분해 제시했는가",
+        "<b>밴드갭 대비 1/25</b>이라는 상대적 크기로 '얕은 준위'와 완전 이온화를 연결했는가",
+        "n ≈ N<sub>D</sub> 라는 해석상의 결론까지 언급했는가"]},
+];
+
+/* .card / .callout 을 아코디언으로 변환 (수업 중 접었다 펴기) */
+function setupAccordions(view){
+  const heads = view.querySelectorAll(".card > h3, .callout > h3");
+  if(!heads.length) return;
+  heads.forEach(h3=>{
+    const box = h3.parentElement;
+    const d = document.createElement("details");
+    d.className = box.className + " acc";
+    d.open = true;
+    const sm = document.createElement("summary");
+    sm.innerHTML = h3.innerHTML;
+    h3.remove();
+    d.appendChild(sm);
+    const body = document.createElement("div");
+    while(box.firstChild) body.appendChild(box.firstChild);
+    d.appendChild(body);
+    box.replaceWith(d);
+  });
+  const first = view.querySelector("details.acc");
+  if(!first) return;
+  const bar = document.createElement("div");
+  bar.className = "acc-bar";
+  bar.innerHTML = `<button class="acc-btn" data-acc="open">＋ 모두 펼치기</button><button class="acc-btn" data-acc="close">－ 모두 접기</button>`;
+  first.parentNode.insertBefore(bar, first);
+  bar.querySelectorAll("[data-acc]").forEach(b=>{
+    b.onclick = ()=>{ view.querySelectorAll("details.acc").forEach(d=> d.open = (b.dataset.acc === "open")); };
+  });
+}
+
 function renderAtomModel(){
   return `
   <span class="ch-eyebrow">추가 자료</span>
@@ -1149,6 +1282,30 @@ function renderAtomModel(){
     <div class="link-cards">
       ${ATOM_LINKS.map(l=>`<a class="link-card" href="${l.u}" target="_blank" rel="noopener"><b>${esc(l.t)}</b><span>${esc(l.s)}</span></a>`).join("")}
     </div>
+  </div>
+
+  <div class="card">
+    <h3>📝 확인 문제 — 단답형 (Ch.1 반도체 기초)</h3>
+    <p class="quiz-lead">각 문항을 먼저 스스로 답해 본 뒤 '정답 보기'를 누르세요. 원자모형에서 출발해 1장 반도체 기초로 이어지는 순서로 구성되어 있습니다.</p>
+    ${QUIZ_SHORT.map((x,i)=>`
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="quiz-no">${i+1}</span><span>${x.q}</span></div>
+        <details class="qa"><summary>정답 보기</summary><div class="a">${x.a}</div></details>
+      </div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h3>🖊️ 확인 문제 — 논술형 (Ch.1 반도체 기초)</h3>
+    <p class="quiz-lead">각 문항은 답안지 반 쪽 분량을 기준으로 합니다. 모범답안과 함께 채점 포인트를 적어두었으니, 스스로 채점해 보세요.</p>
+    ${QUIZ_LONG.map((x,i)=>`
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="quiz-no">${i+1}</span><span>${x.q}</span></div>
+        <details class="qa"><summary>모범답안 · 채점 포인트</summary>
+          <div class="a">${x.a}
+            <div class="pts"><b>채점 포인트</b><ul>${x.pts.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+          </div>
+        </details>
+      </div>`).join("")}
   </div>`;
 }
 
@@ -1457,6 +1614,7 @@ function render(){
   }else if(current.type==="material"){
     const m = MATERIALS.find(x=>x.id===current.id) || MATERIALS[0];
     view.innerHTML = renderMaterial(m);
+    setupAccordions(view);
   }else if(current.type==="chapter"){
     const c = CHAPTERS.find(x=>x.n===current.id) || CHAPTERS[0];
     view.innerHTML = renderChapter(c);
