@@ -304,7 +304,20 @@
   #laserBtn .dot{width:10px; height:10px; border-radius:50%; background:#e34948;}
   #laserBtn.on{background:#e34948; border-color:#e34948; color:#fff;}
   #laserBtn.on .dot{background:#fff; box-shadow:0 0 8px 2px rgba(255,255,255,.8);}
+  #laserHoldBtn{
+    position:fixed; right:22px; bottom:72px; z-index:1000; display:none;
+    align-items:center; gap:7px;
+    padding:9px 14px; border-radius:999px; border:1px solid var(--line);
+    background:var(--panel); color:var(--ink); font-family:inherit;
+    font-size:12.5px; font-weight:700; cursor:pointer;
+    box-shadow:0 4px 14px rgba(16,24,40,.14); transition:.15s;
+  }
+  body.laser-on #laserHoldBtn{display:flex;}
+  #laserHoldBtn.on{background:#1f7a4d; border-color:#1f7a4d; color:#fff;}
   body.laser-on, body.laser-on *{cursor:none !important;}
+  body.laser-on{user-select:none; -webkit-user-select:none;}
+  body.laser-on #laserBtn, body.laser-on #laserBtn *,
+  body.laser-on #laserHoldBtn, body.laser-on #laserHoldBtn *{cursor:pointer !important;}
   .laser-dot{
     position:fixed; left:0; top:0; width:16px; height:16px; border-radius:50%;
     background:radial-gradient(circle, #ffd9d9 0%, #ff4b4b 40%, #d40000 100%);
@@ -345,6 +358,7 @@
 <main id="main"><div class="view" id="view"></div></main>
 
 <button id="laserBtn" title="단축키: L 또는 Esc로 끄기"><span class="dot"></span>레이저 포인터</button>
+<button id="laserHoldBtn" title="단축키: H — 그은 자국을 다음 획까지 남겨 둡니다 (PC에서는 마우스 왼쪽 버튼을 누른 채 드래그)">✏️ 잔상 유지</button>
 
 <script>
 /* ───────── 데이터 ───────── */
@@ -1677,6 +1691,16 @@ let laserOn = false, laserDot = null, laserCanvas = null, lctx = null, lpts = []
 /* 캔버스가 화면에서 실제로 차지하는 박스(CSS px). 클라이언트 좌표를 캔버스 좌표로 옮길 때 쓴다 */
 let lox = 0, loy = 0, lw = 0, lh = 0;
 
+/* ── 잔상 유지 모드 ──
+   기본 모드: 좌표에 시각을 찍어 두고 TRAIL_TTL이 지난 점을 매 프레임 버린다(꼬리가 흐른다).
+   유지 모드: 만료시키지 않고, 획을 뗀 순간 그대로 고정했다가 다음 획이 시작될 때 지운다. */
+const LS_LASER_HOLD = "elec-laser-hold";
+let laserHold = false;      /* 유지 모드 on/off */
+let laserFrozen = false;    /* 지금 잔상이 고정되어 있는가 */
+let laserDrawing = false;   /* 획을 긋는 중인가 (펜슬이 닿아 있거나 마우스 버튼을 누른 상태) */
+const laserHoldBtn = document.getElementById("laserHoldBtn");
+try{ laserHold = localStorage.getItem(LS_LASER_HOLD) === "1"; }catch(e){}
+
 /* iOS Safari에서 100vh(주소창 숨김 기준 높이) ≠ innerHeight(현재 보이는 높이) 이므로
    크기를 추정하지 않고 캔버스의 실제 렌더 박스를 재서 버퍼를 맞춘다.
    이렇게 해야 캔버스 1단위 = CSS 1px 이 되어 펜 끝과 잔상이 정확히 겹친다. */
@@ -1692,6 +1716,14 @@ function laserResize(){
   }
   lctx.setTransform(d, 0, 0, d, 0, 0);
 }
+
+/* 고정된 잔상은 화면에 붙어 있어서, 내용이 스크롤되면 엉뚱한 곳을 가리키게 된다 → 지운다 */
+function laserClearHeld(){
+  if(!laserOn || !laserFrozen) return;
+  lpts = []; laserFrozen = false;
+  if(lctx) lctx.clearRect(0, 0, lw, lh);
+}
+document.addEventListener("scroll", laserClearHeld, {capture:true, passive:true});
 
 /* 주소창이 나타나고 사라지거나 회전할 때 박스가 바뀌므로 다시 잰다 */
 function laserBindResize(on){
@@ -1709,7 +1741,7 @@ function laserBindResize(on){
 function laserTick(){
   if(!laserOn || !lctx) return;
   const now = performance.now();
-  lpts = lpts.filter(p => now - p.t < TRAIL_TTL);
+  if(!laserHold) lpts = lpts.filter(p => now - p.t < TRAIL_TTL);
   lctx.clearRect(0, 0, lw, lh);
   const N = lpts.length;
   if(N > 1){
@@ -1726,8 +1758,36 @@ function laserTick(){
       lctx.stroke();
     }
   }
+  /* 고정된 뒤에는 다시 그릴 필요가 없으므로 루프를 멈춘다(발열·배터리 이득) */
+  if(laserFrozen){ laserRaf = 0; return; }
   laserRaf = requestAnimationFrame(laserTick);
 }
+
+/* 획의 시작과 끝 — 유지 모드의 기준점 */
+function laserStrokeStart(){
+  if(!laserOn) return;
+  laserDrawing = true;
+  if(laserHold && laserFrozen){ lpts = []; laserFrozen = false; }
+  if(!laserRaf) laserRaf = requestAnimationFrame(laserTick);
+}
+function laserStrokeEnd(){
+  if(!laserOn) return;
+  laserDrawing = false;
+  /* 유지 모드면 지금 모습 그대로 고정(다음 프레임이 한 번 더 그린 뒤 멈춘다) */
+  if(laserHold) laserFrozen = true;
+}
+
+function setLaserHold(v){
+  laserHold = v;
+  laserHoldBtn.classList.toggle("on", v);
+  try{ localStorage.setItem(LS_LASER_HOLD, v ? "1" : "0"); }catch(e){}
+  if(!v){                       /* 유지 모드를 끄면 남아 있던 잔상을 흘려보낸다 */
+    laserFrozen = false;
+    if(laserOn && !laserRaf) laserRaf = requestAnimationFrame(laserTick);
+  }
+}
+laserHoldBtn.onclick = ()=> setLaserHold(!laserHold);
+setLaserHold(laserHold);
 
 function setLaser(on){
   laserOn = on;
@@ -1755,33 +1815,56 @@ function setLaser(on){
     if(laserDot){ laserDot.remove(); laserDot = null; }
     if(laserCanvas){ laserCanvas.remove(); laserCanvas = null; lctx = null; }
     lpts = [];
+    laserFrozen = false; laserDrawing = false;
   }
 }
 laserBtn.onclick = ()=> setLaser(!laserOn);
 
-function laserMove(x, y){
+/* record=false 면 붉은 점만 옮기고 꼬리에는 기록하지 않는다.
+   유지 모드에서 호버(펜슬을 띄운 상태·마우스 이동)가 고정된 잔상을 망치지 않도록 하는 장치. */
+function laserMove(x, y, record){
   if(!laserOn || !laserDot) return;
   laserDot.style.display = "block";
   laserDot.style.left = x+"px";
   laserDot.style.top = y+"px";
+  if(record === false) return;
   /* 점(fixed 배치)은 클라이언트 좌표 그대로, 잔상은 캔버스 로컬 좌표로 변환해 저장 */
   const cx = x - lox, cy = y - loy;
   /* 펜슬은 touch/pointer 이벤트가 같은 좌표로 중복 발생 → 같은 점은 꼬리에 넣지 않음 */
   const last = lpts[lpts.length - 1];
   if(last && Math.abs(last.x - cx) < 0.5 && Math.abs(last.y - cy) < 0.5) return;
   lpts.push({x: cx, y: cy, t: performance.now()});
-  if(lpts.length > 120) lpts.shift();
+  const cap = laserHold ? 2000 : 120;   /* 유지 모드는 긴 획을 통째로 보관 */
+  if(lpts.length > cap) lpts.shift();
 }
 
 /* 애플 펜슬(스타일러스) = 레이저만 이동(스크롤 차단), 손가락 = 평소대로 스크롤 */
 function isStylus(t){ return !!t && t.touchType === "stylus"; }
-function onLaserBtn(el){ return !!(el && el.closest && el.closest("#laserBtn")); }
+function onLaserBtn(el){ return !!(el && el.closest && el.closest("#laserBtn, #laserHoldBtn")); }
 
-document.addEventListener("mousemove", e=> laserMove(e.clientX, e.clientY));
+document.addEventListener("mousemove", e=>{
+  if(!laserOn) return;
+  if(!laserHold){ laserMove(e.clientX, e.clientY); return; }   /* 기본 모드는 예전 그대로 */
+  /* 유지 모드에서는 왼쪽 버튼을 누른 채 움직일 때만 획으로 인정한다 */
+  const contact = (e.buttons & 1) === 1;
+  if(contact && !laserDrawing) laserStrokeStart();
+  laserMove(e.clientX, e.clientY, contact);
+});
+document.addEventListener("mousedown", e=>{
+  if(!laserOn || !laserHold || e.button !== 0 || onLaserBtn(e.target)) return;
+  laserStrokeStart();
+  laserMove(e.clientX, e.clientY, true);
+});
+document.addEventListener("mouseup", e=>{
+  if(!laserOn || !laserHold || e.button !== 0) return;
+  laserStrokeEnd();
+});
 
 /* 펜슬 호버(지원 기기)에서도 포인터가 따라오도록 */
 document.addEventListener("pointermove", e=>{
-  if(laserOn && e.pointerType === "pen") laserMove(e.clientX, e.clientY);
+  if(!laserOn || e.pointerType !== "pen") return;
+  /* 유지 모드에서는 펜슬이 화면에 닿아 있을 때(pressure>0)만 꼬리에 기록한다 */
+  laserMove(e.clientX, e.clientY, !laserHold || e.pressure > 0);
 });
 
 /* passive:false 여야 preventDefault()로 스크롤을 막을 수 있다 */
@@ -1791,8 +1874,18 @@ document.addEventListener("touchstart", e=>{
   if(!isStylus(t) || onLaserBtn(e.target)) return;   /* 손가락·레이저 버튼은 그대로 */
   e.preventDefault();                                /* 스크롤 시작 자체를 차단 */
   laserResize();                                     /* 획 시작 시점에 박스를 다시 측정 */
+  laserStrokeStart();
   laserMove(t.clientX, t.clientY);
 }, {passive:false});
+
+/* 펜슬을 떼면 획이 끝난 것으로 본다 (touchend에는 touches가 비어 changedTouches를 본다) */
+["touchend","touchcancel"].forEach(function(ev){
+  document.addEventListener(ev, function(e){
+    if(!laserOn) return;
+    if(!isStylus(e.changedTouches && e.changedTouches[0])) return;
+    laserStrokeEnd();
+  }, {passive:true});
+});
 
 document.addEventListener("touchmove", e=>{
   if(!laserOn) return;
@@ -1805,6 +1898,7 @@ document.addEventListener("keydown", e=>{
   const tag = (document.activeElement||{}).tagName;
   if(tag==="INPUT"||tag==="TEXTAREA") return;
   if(e.key==="l"||e.key==="L") setLaser(!laserOn);
+  if(e.key==="h"||e.key==="H") setLaserHold(!laserHold);
   if(e.key==="Escape" && laserOn) setLaser(false);
 });
 
