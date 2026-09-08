@@ -243,6 +243,16 @@
   }
   .quote b{color:var(--accent-ink);}
 
+  /* ───────── 반도체 회사 구도 ───────── */
+  .biz-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-top:18px;}
+  .biz-card{border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; background:var(--panel);}
+  .biz-card.hl{border:1.5px solid var(--accent); box-shadow:0 4px 14px rgba(47,107,255,.12);}
+  .biz-tag{display:inline-block; background:var(--accent-soft); color:var(--accent-ink);
+           font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:999px;}
+  .biz-card h4{font-size:15px; font-weight:800; margin-top:10px;}
+  .biz-card p{font-size:13.5px; line-height:1.68; color:#4a5462; margin-top:7px;}
+  .biz-card .co{font-size:12.5px; color:var(--accent-ink); font-weight:700; margin-top:9px; line-height:1.6;}
+
   /* ───────── 아코디언 ───────── */
   .acc-bar{display:flex; gap:8px; margin-top:20px;}
   .acc-btn{
@@ -376,6 +386,7 @@ const MATERIALS = [
   {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지", icon:"📘"},
   {id:"electricity-flow", title:"전기는 흐르지 않는다", sub:"전자의 속도와 에너지의 정체", icon:"⚡"},
   {id:"atom-model", title:"원자모델", sub:"Atomic Models", icon:"⚛️"},
+  {id:"chip-industry", title:"반도체 회사의 종류와 구도", sub:"메모리·비메모리 / IDM·팹리스·파운드리", icon:"🏭"},
 ];
 
 const LS_KEY = "elec-custom-pages-v1";
@@ -647,6 +658,7 @@ const NODE_TABLE = [
 function renderMaterial(m){
   if(m.id === "electricity-flow") return renderElectricityFlow();
   if(m.id === "atom-model") return renderAtomModel();
+  if(m.id === "chip-industry") return renderChipIndustry();
   return renderSemiHistory();
 }
 
@@ -1587,6 +1599,269 @@ function renderElectricityFlow(){
     </div>
     <p class="mat-section-note">※ 이 주제는 표현을 두고 논쟁이 있었습니다. 핵심은 "전자가 안 움직인다"가 아니라
     <b>"에너지 전달의 주체는 전자의 이동이 아니라 전자기장"</b>이라는 점입니다. 시험에서는 드리프트 속도 계산식과 세 속도의 구분을 정확히 알아두세요.</p>
+  </div>`;
+}
+
+/* ───────── 고정 자료: 반도체 회사의 종류와 구도 ───────── */
+
+/* 두 개의 분류축을 한 장에 — 세로: 무엇을 만드나 / 가로: 어떻게 사업하나 */
+function chipMatrix(){
+  const w=820, h=456, LW=132, GAP=8, CW=220, X0=LW+GAP;
+  const cols=[
+    {t:"IDM", s:"설계 + 제조 + 판매"},
+    {t:"팹리스 (Fabless)", s:"설계만 · 제조는 위탁"},
+    {t:"파운드리 (Foundry)", s:"제조만 · 남의 설계를 생산"},
+  ];
+  const cells=[
+    [ {co:["삼성전자","SK하이닉스","마이크론","키옥시아 · 샌디스크"], hl:true},
+      {none:"사실상 없음", why:"메모리는 제품이 표준화돼 있어 설계와 공정을 나눌 이유가 적다"},
+      {none:"거의 없음", why:"메모리는 자기 공장에서 자기 제품을 만든다"} ],
+    [ {co:["인텔","텍사스 인스트루먼트","인피니언 · ST"], note:"인텔은 최근 파운드리도 함께"},
+      {co:["NVIDIA","AMD · 퀄컴","브로드컴 · 미디어텍","애플(자사용)"], hl:true},
+      {co:["TSMC","삼성 파운드리","UMC · GlobalFoundries"], hl:true} ],
+  ];
+  const rows=[{t:"메모리", s:"DRAM · NAND"},{t:"비메모리", s:"CPU · GPU · AP"}];
+  const RY=[74, 254], RH=170;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="반도체 회사를 메모리/비메모리와 IDM/팹리스/파운드리 두 축으로 나눈 표">`;
+  cols.forEach((c,i)=>{
+    const x = X0 + i*(CW+GAP);
+    s += `<text x="${x+CW/2}" y="34" text-anchor="middle" font-size="14" font-weight="800" fill="${VIZ.ink}">${c.t}</text>`;
+    s += `<text x="${x+CW/2}" y="54" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">${c.s}</text>`;
+  });
+  rows.forEach((r,ri)=>{
+    s += `<text x="${LW-10}" y="${RY[ri]+RH/2-6}" text-anchor="end" font-size="14" font-weight="800" fill="${VIZ.ink}">${r.t}</text>`;
+    s += `<text x="${LW-10}" y="${RY[ri]+RH/2+14}" text-anchor="end" font-size="11" fill="${VIZ.muted}">${r.s}</text>`;
+    cells[ri].forEach((cell,ci)=>{
+      const x = X0 + ci*(CW+GAP);
+      const empty = !!cell.none;
+      s += `<rect x="${x}" y="${RY[ri]}" width="${CW}" height="${RH}" rx="12" fill="${empty?"#f6f7f9":(cell.hl?"#eef3ff":"#fff")}" stroke="${empty?VIZ.grid:(cell.hl?VIZ.accent:VIZ.grid)}" stroke-width="${cell.hl?1.6:1.2}"/>`;
+      if(empty){
+        s += `<text x="${x+CW/2}" y="${RY[ri]+56}" text-anchor="middle" font-size="14" font-weight="800" fill="#9aa3b0">${cell.none}</text>`;
+        const words = cell.why.split(" ");
+        let line="", ln=0;
+        words.forEach(wd=>{
+          if((line+wd).length > 15){ s += `<text x="${x+CW/2}" y="${RY[ri]+84+ln*18}" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">${line}</text>`; line=wd+" "; ln++; }
+          else line += wd+" ";
+        });
+        s += `<text x="${x+CW/2}" y="${RY[ri]+84+ln*18}" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">${line}</text>`;
+      }else{
+        cell.co.forEach((n,k)=>{
+          s += `<text x="${x+CW/2}" y="${RY[ri]+38+k*26}" text-anchor="middle" font-size="13.5" font-weight="${k===0?800:600}" fill="${k===0?VIZ.accent:"#3f4855"}">${n}</text>`;
+        });
+        if(cell.note) s += `<text x="${x+CW/2}" y="${RY[ri]+RH-16}" text-anchor="middle" font-size="11" fill="${VIZ.muted}">${cell.note}</text>`;
+      }
+    });
+  });
+  s += `<text x="${X0}" y="${h-12}" font-size="11.5" fill="${VIZ.muted}">※ 삼성전자는 메모리 IDM과 파운드리, 두 칸에 동시에 등장합니다 — 한 단어로 부르기 어려운 회사입니다.</text>`;
+  return s+"</svg>";
+}
+
+/* AI 가속기 한 개가 만들어지기까지 — 세 사업 모델이 한 제품에서 만난다 */
+function aiSupplyChain(){
+  const w=820, h=330;
+  const box=(x,y,bw,bh,tag,title,sub,c)=>{
+    let g = `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="12" fill="#fff" stroke="${c}" stroke-width="1.8"/>`;
+    g += `<rect x="${x+12}" y="${y+12}" width="${tag.length*7.6+16}" height="20" rx="10" fill="${c}" opacity=".13"/>`;
+    g += `<text x="${x+20}" y="${y+26}" font-size="11" font-weight="800" fill="${c}">${tag}</text>`;
+    g += `<text x="${x+12}" y="${y+54}" font-size="14.5" font-weight="800" fill="${VIZ.ink}">${title}</text>`;
+    g += `<text x="${x+12}" y="${y+74}" font-size="11.5" fill="${VIZ.sub}">${sub}</text>`;
+    return g;
+  };
+  const arrow=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${VIZ.axis}" stroke-width="2.2" marker-end="url(#scA)"/>`;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AI 가속기 공급망: 팹리스 설계, 파운드리 제조, 메모리 회사의 HBM, 파운드리 패키징">`;
+  s += `<defs><marker id="scA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="${VIZ.axis}"/></marker></defs>`;
+  s += `<text x="20" y="26" font-size="13.5" font-weight="800" fill="${VIZ.ink}">AI 가속기 한 개가 만들어지기까지</text>`;
+  s += box(20, 46, 176, 92, "팹리스", "NVIDIA", "GPU를 설계한다", "#2f6bff");
+  s += box(232, 46, 176, 92, "파운드리", "TSMC", "GPU 다이를 만든다", "#0f9d6e");
+  s += box(232, 176, 176, 92, "메모리 IDM", "SK하이닉스 등", "HBM을 만들어 판다", "#e8552d");
+  s += box(444, 111, 176, 92, "파운드리 후공정", "TSMC (CoWoS)", "GPU와 HBM을 한 패키지로", "#0f9d6e");
+  s += box(656, 111, 144, 92, "완제품", "AI 가속기", "서버에 실린다", "#7c3aed");
+  s += arrow(196, 92, 226, 92);
+  s += arrow(408, 92, 440, 140);
+  s += arrow(408, 222, 440, 176);
+  s += arrow(620, 157, 650, 157);
+  s += `<text x="410" y="${h-26}" text-anchor="middle" font-size="12" fill="${VIZ.sub}">설계 회사도, 제조 회사도, 메모리 회사도 혼자서는 이 칩을 만들 수 없습니다.</text>`;
+  s += `<text x="410" y="${h-8}" text-anchor="middle" font-size="12" fill="${VIZ.muted}">"반도체 회사"를 하나의 덩어리로 보면 이 그림이 보이지 않습니다.</text>`;
+  return s+"</svg>";
+}
+
+/* HBM은 왜 메모리 회사가 만드는데 포장은 파운드리가 하는가 */
+function hbmStack(){
+  const w=820, h=310, subY=248, intY=214, base=210;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인터포저 위에 GPU 다이와 HBM 적층이 함께 올라간 구조">`;
+  s += `<rect x="90" y="${subY}" width="640" height="30" rx="5" fill="#3f4855"/>`;
+  s += `<text x="410" y="${subY+20}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">패키지 기판 (substrate)</text>`;
+  s += `<rect x="130" y="${intY}" width="560" height="30" rx="4" fill="#c9d4e4" stroke="#94a3b8" stroke-width="1.2"/>`;
+  s += `<text x="410" y="${intY+20}" text-anchor="middle" font-size="12" font-weight="700" fill="#3f4855">인터포저 (실리콘 중계 기판)</text>`;
+  /* GPU 다이 */
+  s += `<rect x="330" y="128" width="160" height="82" rx="6" fill="#d7f0e4" stroke="#0f9d6e" stroke-width="1.8"/>`;
+  s += `<text x="410" y="164" text-anchor="middle" font-size="14" font-weight="800" fill="#0a7d57">GPU 다이</text>`;
+  s += `<text x="410" y="184" text-anchor="middle" font-size="11" fill="#0a7d57">팹리스가 설계 · 파운드리가 제조</text>`;
+  /* HBM 적층 */
+  [[180,"DRAM 다이 적층 + TSV 관통"],[540,"맨 아래는 베이스 다이"]].forEach(([x,cap])=>{
+    for(let i=0;i<5;i++){
+      const y = base - 16 - i*17;
+      const isBase = (i===0);
+      s += `<rect x="${x}" y="${y}" width="100" height="15" rx="2.5" fill="${isBase?"#f6c9bb":"#fbe0d7"}" stroke="#e8552d" stroke-width="1.2"/>`;
+    }
+    /* TSV */
+    [x+22, x+50, x+78].forEach(tx=>{
+      s += `<line x1="${tx}" y1="${base-16-4*17}" x2="${tx}" y2="${base-2}" stroke="#c23c17" stroke-width="1.3" stroke-dasharray="3 2"/>`;
+    });
+    s += `<text x="${x+50}" y="${base-16-5*17-8}" text-anchor="middle" font-size="13" font-weight="800" fill="#c23c17">HBM</text>`;
+    s += `<text x="${x+50}" y="${base-16-5*17+8}" text-anchor="middle" font-size="10.5" fill="#c23c17">${cap}</text>`;
+  });
+  s += `<text x="20" y="26" font-size="13.5" font-weight="800" fill="${VIZ.ink}">HBM — 메모리 회사가 만들지만, 붙이는 것은 파운드리</text>`;
+  s += `<text x="20" y="46" font-size="12" fill="${VIZ.sub}">HBM은 새로운 종류의 메모리가 아니라 <tspan font-weight="800">DRAM을 위로 쌓아 통로를 넓힌 것</tspan>입니다. 그래서 DRAM 3사가 만듭니다.</text>`;
+  s += `<text x="20" y="${h-8}" font-size="12" fill="${VIZ.muted}">그런데 GPU 옆에 나란히 올려 붙이는 공정(TSMC의 CoWoS 같은 첨단 패키징)은 파운드리의 몫입니다.</text>`;
+  return s+"</svg>";
+}
+
+const BIZ_MODELS = [
+  {tag:"IDM", t:"종합 반도체 회사", d:"설계도 하고 자기 공장에서 제조도 하고 자기 브랜드로 판다. 공장 투자비를 스스로 감당해야 해서 덩치가 크다.",
+   co:"삼성전자 · SK하이닉스 · 마이크론 · 인텔 · TI", hl:true},
+  {tag:"팹리스", t:"설계 전문", d:"공장이 없다(fab-less). 칩을 설계해 파운드리에 제조를 맡기고, 완성된 칩을 자기 브랜드로 판다. 설비 부담이 없어 설계 역량만으로 승부한다.",
+   co:"NVIDIA · AMD · 퀄컴 · 브로드컴 · 애플", hl:true},
+  {tag:"파운드리", t:"제조 전문", d:"자기 제품을 설계하지 않는다. 남이 설계한 칩을 위탁받아 생산한다. 고객과 경쟁하지 않는다는 점이 신뢰의 핵심이다.",
+   co:"TSMC · 삼성 파운드리 · UMC · GlobalFoundries", hl:true},
+  {tag:"OSAT", t:"후공정 전문", d:"완성된 웨이퍼를 잘라 포장하고 검사한다. 예전에는 단순 작업으로 여겨졌지만, 첨단 패키징이 성능을 좌우하면서 중요해졌다.",
+   co:"ASE · Amkor · 하나마이크론"},
+  {tag:"장비 · 소재", t:"만드는 도구를 만드는 회사", d:"칩을 직접 만들지 않지만 없으면 아무도 못 만든다. 특히 EUV 노광기는 네덜란드 ASML이 세계에서 유일하게 만든다.",
+   co:"ASML · 어플라이드머티리얼즈 · 램리서치 · 도쿄일렉트론"},
+  {tag:"EDA · IP", t:"설계 도구와 설계 자산", d:"칩 설계를 위한 소프트웨어(EDA)와, 미리 만들어 둔 회로 블록(IP)을 판다. 팹리스는 이것 없이는 설계를 시작할 수 없다.",
+   co:"케이던스 · 시놉시스 · ARM"},
+];
+
+const MEM_TYPES = [
+  ["DRAM", "전원이 꺼지면 사라짐 (휘발성)", "빠르지만 계속 재충전 필요. 컴퓨터의 '작업 책상'", "삼성전자 · SK하이닉스 · 마이크론", true],
+  ["NAND", "전원이 꺼져도 남음 (비휘발성)", "느리지만 대용량·저렴. SSD와 저장장치의 '책장'", "삼성전자 · SK하이닉스(솔리다임) · 키옥시아 · 샌디스크 · 마이크론"],
+  ["HBM", "DRAM을 쌓은 것", "DRAM 다이를 여러 층 적층하고 TSV로 관통 연결해 통로를 크게 넓힌 것. 별개의 기술이 아니라 DRAM의 응용", "삼성전자 · SK하이닉스 · 마이크론", true],
+];
+
+const KR_COMPANIES = [
+  ["삼성전자", "IDM + 파운드리", "DRAM·NAND·HBM, 엑시노스 AP, 그리고 파운드리까지"],
+  ["SK하이닉스", "메모리 IDM", "DRAM·HBM·NAND (NAND는 자회사 솔리다임 포함)"],
+  ["DB하이텍", "파운드리", "8인치 아날로그·전력 반도체 특화 — 최첨단 경쟁과는 다른 길"],
+  ["LX세미콘", "팹리스", "디스플레이 구동칩(DDI) 설계"],
+  ["리벨리온 · 퓨리오사AI", "팹리스", "AI 추론 가속기를 설계하는 스타트업"],
+  ["한미반도체", "장비", "HBM 적층에 쓰는 본딩 장비"],
+  ["원익IPS · 주성엔지니어링", "장비", "증착 등 전공정 장비"],
+  ["동진쎄미켐 · 솔브레인", "소재", "포토레지스트, 식각액 등"],
+];
+
+const CHIP_QUIZ = [
+  {q:"뉴스에서 말하는 '메모리 3사'는 정확히 무엇을 뜻하는가? '세계 메모리 회사가 셋뿐이다'라는 말이 왜 부정확한지 함께 설명하시오.",
+   a:"<b>첨단 DRAM을 대량 생산할 수 있는 회사가 사실상 삼성전자·SK하이닉스·마이크론 셋으로 압축되어 있다</b>는 뜻이다.<br>메모리에는 DRAM 말고 NAND도 있고, NAND에는 키옥시아·샌디스크 등 다른 회사들도 중요한 몫을 차지한다. 그러므로 '메모리 회사가 셋뿐'이 아니라 <b>'DRAM이 3사 과점 구조'</b>라고 말해야 정확하다."},
+
+  {q:"TSMC는 세계 최대 반도체 제조 회사인데도 '메모리 3사'에 넣지 않는다. 왜인가?",
+   a:"TSMC는 <b>파운드리</b>, 즉 남이 설계한 칩을 위탁받아 만들어 주는 회사이기 때문이다. 메모리를 자기 브랜드의 제품으로 설계·생산·판매하지 않는다.<br>다만 '메모리를 전혀 만들지 않는다'고 하면 지나치다 — 고객 칩 안에 들어가는 SRAM 같은 내장 메모리는 TSMC 공정으로 만들어진다. 기준은 <b>무엇을 만들 수 있느냐가 아니라 무엇을 자기 제품으로 파느냐</b>이다."},
+
+  {q:"팹리스와 파운드리는 각각 무엇이며, 이 둘로 나뉘어 있는 것이 왜 서로에게 이익인가?",
+   a:"<b>팹리스</b>는 공장 없이 설계만 하는 회사(NVIDIA, 퀄컴), <b>파운드리</b>는 설계는 하지 않고 남의 칩을 제조하는 회사(TSMC)다.<br>최신 공장은 감당하기 힘들 만큼 비싸다. 팹리스는 그 부담 없이 설계에만 집중할 수 있고, 파운드리는 여러 고객의 물량을 한 공장에 모아 설비를 가득 돌릴 수 있다. 서로에게 이익이므로 이 분업이 자리 잡았다."},
+
+  {q:"메모리 분야에는 왜 팹리스 회사가 사실상 없는가?",
+   a:"메모리는 제품 자체가 <b>표준화</b>되어 있어서 설계로 차별화할 여지가 크지 않고, 경쟁력이 <b>얼마나 미세한 공정으로 얼마나 싸게 많이 찍어내느냐</b>에서 나온다. 설계와 공정이 사실상 한 몸이라 나눌 이유가 적다.<br>반대로 로직(비메모리)은 만들려는 칩의 종류가 매우 다양해서 설계와 제조를 나누는 것이 유리하다. 그래서 같은 반도체인데도 두 분야의 산업 구조가 다르게 굳어졌다."},
+
+  {q:"HBM이 무엇인지 한 문장으로 설명하고, 왜 AI 시대에 갑자기 중요해졌는지 쓰시오.",
+   a:"<b>DRAM 다이를 여러 층으로 쌓고 TSV로 관통 연결해 데이터가 드나드는 통로를 크게 넓힌 메모리</b>다. 새로운 종류의 메모리가 아니라 DRAM의 응용이다.<br>AI 연산은 계산 자체보다 <b>많은 데이터를 얼마나 빨리 GPU에 넣어 주느냐</b>가 병목이다. 통로가 좁으면 GPU가 놀게 되므로, GPU 성능을 살리려면 HBM이 필요하다. 그래서 AI 가속기 수요가 곧 DRAM 3사의 경쟁으로 이어졌다."},
+
+  {q:"삼성전자를 'IDM'이라고만 부르기 어려운 이유는?",
+   a:"메모리는 설계부터 제조·판매까지 직접 하는 <b>IDM</b>이면서, 동시에 다른 회사의 칩을 위탁 생산하는 <b>파운드리</b> 사업도 하고, 엑시노스 같은 시스템 반도체 설계도 한다. 두 분류축에서 여러 칸에 동시에 걸쳐 있어 한 단어로 부르기 어렵다."},
+];
+
+function renderChipIndustry(){
+  return `
+  <span class="ch-eyebrow">부가 자료</span>
+  <h2 class="ch-title">반도체 회사의 종류와 구도</h2>
+  <p class="ch-sub">Who makes what — 메모리·비메모리 / IDM·팹리스·파운드리</p>
+  <p class="mat-section-note">뉴스에는 삼성전자, SK하이닉스, TSMC, NVIDIA, ASML이 모두 "반도체 회사"로 나옵니다.
+  그런데 이 회사들은 하는 일이 서로 완전히 다릅니다. 헷갈리는 이유는 대개 <b>두 개의 서로 다른 분류축을 섞어서 듣기 때문</b>입니다.
+  이 페이지는 그 두 축을 먼저 나누고, 그 위에 회사들을 올려놓습니다.</p>
+
+  <div class="card">
+    <h3>🧭 축이 두 개다</h3>
+    <p class="mat-section-note"><b>축 ①  무엇을 만드는가</b> — 메모리(DRAM·NAND) / 비메모리(CPU·GPU·AP·아날로그, '시스템 반도체'라고도 함)<br>
+    <b>축 ②  어떻게 사업하는가</b> — IDM(설계+제조) / 팹리스(설계만) / 파운드리(제조만)</p>
+    <p class="mat-section-note">"삼성전자와 TSMC 중 누가 더 크냐" 같은 질문이 어색한 이유가 여기 있습니다. 두 회사는 <b>같은 축 위에 있지 않습니다.</b>
+    아래 표에서 가로와 세로를 각각 따라가 보세요.</p>
+    <div class="chart-wrap">${chipMatrix()}</div>
+    <p class="chart-note">빈칸도 정보입니다. <b>메모리 팹리스가 사실상 없다</b>는 사실이 메모리 산업의 성격을 그대로 말해 줍니다 — 뒤에서 다시 다룹니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🏢 사업 모델 여섯 갈래</h3>
+    <div class="biz-grid">
+      ${BIZ_MODELS.map(b=>`<div class="biz-card${b.hl?" hl":""}"><span class="biz-tag">${b.tag}</span><h4>${b.t}</h4><p>${b.d}</p><div class="co">${b.co}</div></div>`).join("")}
+    </div>
+    <p class="mat-section-note">앞의 세 가지(IDM·팹리스·파운드리)가 흔히 말하는 분류이고, 뒤의 세 가지는 뉴스에 덜 나오지만 <b>없으면 산업이 멈추는</b> 자리입니다.
+    ASML이 EUV 노광기를 어느 나라에 파느냐가 국제 뉴스가 되는 이유이기도 합니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>💾 그래서 '메모리 3사'는 무슨 뜻인가</h3>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>종류</th><th>전원을 끄면</th><th>성격</th><th>주요 회사</th></tr></thead>
+      <tbody>${MEM_TYPES.map(r=>`<tr${r[4]?' class="hl-row"':''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="mat-section-note">표를 보면 답이 나옵니다. <b>DRAM은 3사 과점</b>이지만 <b>NAND는 그렇지 않습니다.</b>
+    그래서 "세계 메모리 회사가 딱 3개다"라고 말하면 정확하지 않고,
+    <b>"첨단 DRAM을 대량 생산할 수 있는 회사가 사실상 삼성전자·SK하이닉스·마이크론 3사로 압축돼 있다"</b>고 말해야 맞습니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🧱 HBM — 요즘 '3사'가 자주 등장하는 이유</h3>
+    <p class="mat-section-note">AI 연산은 계산 능력보다 <b>데이터를 얼마나 빨리 GPU에 넣어 주느냐</b>가 병목입니다.
+    통로가 좁으면 아무리 빠른 GPU도 데이터를 기다리며 놀게 됩니다. 그래서 통로를 넓힌 메모리가 필요해졌고, 그것이 HBM입니다.</p>
+    <div class="chart-wrap">${hbmStack()}</div>
+    <p class="chart-note">HBM은 <b>DRAM 기술</b>이므로 DRAM을 만들 수 있는 3사가 만듭니다.
+    "AI가 뜨니까 메모리 3사 이야기가 부쩍 늘었다"는 흐름이 여기서 나옵니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🔗 AI 가속기 하나에 세 종류의 회사가 모두 들어간다</h3>
+    <div class="chart-wrap">${aiSupplyChain()}</div>
+    <p class="chart-note">이 그림이 이 페이지에서 가장 중요합니다. <b>어느 한 회사도 혼자서는 이 칩을 만들 수 없습니다.</b>
+    설계는 팹리스, 다이 제조와 패키징은 파운드리, HBM은 메모리 IDM이 맡습니다.
+    "반도체 회사"를 하나의 덩어리로 보면 이 분업 구조가 보이지 않습니다.</p>
+  </div>
+
+  <div class="callout">
+    <h3>🤔 왜 메모리에는 팹리스가 없을까</h3>
+    <p>앞의 표에서 <b>메모리 × 팹리스</b> 칸이 비어 있었습니다. 우연이 아닙니다.<br><br>
+    메모리는 제품이 <b>표준화</b>되어 있습니다. 어느 회사의 DRAM이든 같은 규격으로 꽂혀 같은 일을 하므로, 설계로 차별화할 여지가 크지 않습니다.
+    경쟁력은 <b>얼마나 미세한 공정으로 얼마나 싸게 많이 찍어내느냐</b>에서 나오고, 그것은 곧 공정 기술입니다.
+    설계와 공정이 사실상 한 몸이니 나눌 이유가 없습니다.<br><br>
+    반대로 비메모리는 만들려는 칩의 종류가 끝없이 다양합니다. 자동차용, 휴대폰용, AI용이 전부 다르니
+    <b>설계는 잘하는 회사가, 제조는 잘하는 회사가</b> 맡는 분업이 유리합니다. 그래서 팹리스와 파운드리로 갈라졌습니다.<br><br>
+    같은 '반도체'인데 두 분야의 산업 구조가 다르게 굳어진 것 — 이것이 기술이 산업의 모양을 결정한 사례입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🇰🇷 우리나라 회사들은 어디에 있나</h3>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>회사</th><th>분류</th><th>하는 일</th></tr></thead>
+      <tbody>${KR_COMPANIES.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="mat-section-note">메모리 대기업만 떠올리기 쉽지만, 실제로는 파운드리·팹리스·장비·소재까지 넓게 퍼져 있습니다.
+    전자공학 전공자가 갈 수 있는 자리도 그만큼 다양합니다 — 회로 설계, 공정, 소자, 장비, 패키징, 테스트가 전부 다른 일입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>📝 확인 문제</h3>
+    <p class="quiz-lead">수식·계산 없이 문장으로 답합니다. 외울 숫자는 없고, <b>왜 그렇게 나뉘는지</b>를 설명할 수 있으면 됩니다.</p>
+    ${CHIP_QUIZ.map((x,i)=>`
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="quiz-no">${i+1}</span><span>${x.q}</span></div>
+        <details class="qa"><summary>정답 보기</summary><div class="a">${x.a}</div></details>
+      </div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h3>⚠️ 이 페이지를 읽을 때 주의할 점</h3>
+    <p class="mat-section-note">여기 적힌 회사 목록과 구도는 <b>산업의 뼈대</b>이지 고정된 사실이 아닙니다.
+    인텔이 파운드리에 뛰어들고, 웨스턴디지털이 낸드 사업을 샌디스크로 분리하고, 삼성전자가 파운드리 비중을 늘리는 것처럼 경계는 계속 움직입니다.
+    시장 점유율 같은 수치는 분기마다 바뀌므로 이 페이지에는 일부러 적지 않았습니다.
+    <b>외워야 할 것은 회사 이름이 아니라 두 개의 분류축</b>입니다. 축을 알면 새로운 회사 이름이 나와도 어디에 놓아야 할지 스스로 판단할 수 있습니다.</p>
   </div>`;
 }
 
