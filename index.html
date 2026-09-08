@@ -311,7 +311,8 @@
     box-shadow:0 0 14px 5px rgba(255,45,45,.55);
     pointer-events:none; z-index:2000; transform:translate(-50%,-50%);
   }
-  #laserCanvas{position:fixed; left:0; top:0; width:100vw; height:100vh; pointer-events:none; z-index:1999;}
+  #laserCanvas{position:fixed; left:0; top:0; width:100%; height:100vh; pointer-events:none; z-index:1999;}
+  @supports (height:100dvh){ #laserCanvas{height:100dvh;} }
 
   @media (max-width:820px){
     body{flex-direction:column; overflow:auto;}
@@ -1647,20 +1648,43 @@ function deletePage(id){
 const laserBtn = document.getElementById("laserBtn");
 const TRAIL_TTL = 420;   /* 꼬리 잔상 지속시간(ms) */
 let laserOn = false, laserDot = null, laserCanvas = null, lctx = null, lpts = [], laserRaf = 0;
+/* 캔버스가 화면에서 실제로 차지하는 박스(CSS px). 클라이언트 좌표를 캔버스 좌표로 옮길 때 쓴다 */
+let lox = 0, loy = 0, lw = 0, lh = 0;
 
+/* iOS Safari에서 100vh(주소창 숨김 기준 높이) ≠ innerHeight(현재 보이는 높이) 이므로
+   크기를 추정하지 않고 캔버스의 실제 렌더 박스를 재서 버퍼를 맞춘다.
+   이렇게 해야 캔버스 1단위 = CSS 1px 이 되어 펜 끝과 잔상이 정확히 겹친다. */
 function laserResize(){
-  if(!laserCanvas) return;
+  if(!laserCanvas || !lctx) return;
   const d = window.devicePixelRatio || 1;
-  laserCanvas.width = innerWidth * d;
-  laserCanvas.height = innerHeight * d;
+  const r = laserCanvas.getBoundingClientRect();
+  lox = r.left; loy = r.top; lw = r.width; lh = r.height;
+  const bw = Math.max(1, Math.round(lw * d)), bh = Math.max(1, Math.round(lh * d));
+  if(laserCanvas.width !== bw || laserCanvas.height !== bh){
+    laserCanvas.width = bw;
+    laserCanvas.height = bh;
+  }
   lctx.setTransform(d, 0, 0, d, 0, 0);
+}
+
+/* 주소창이 나타나고 사라지거나 회전할 때 박스가 바뀌므로 다시 잰다 */
+function laserBindResize(on){
+  const fn = on ? addEventListener : removeEventListener;
+  fn("resize", laserResize);
+  fn("orientationchange", laserResize);
+  fn("scroll", laserResize, true);
+  if(window.visualViewport){
+    const vv = window.visualViewport;
+    (on ? vv.addEventListener : vv.removeEventListener).call(vv, "resize", laserResize);
+    (on ? vv.addEventListener : vv.removeEventListener).call(vv, "scroll", laserResize);
+  }
 }
 
 function laserTick(){
   if(!laserOn || !lctx) return;
   const now = performance.now();
   lpts = lpts.filter(p => now - p.t < TRAIL_TTL);
-  lctx.clearRect(0, 0, innerWidth, innerHeight);
+  lctx.clearRect(0, 0, lw, lh);
   const N = lpts.length;
   if(N > 1){
     /* 같은 경로를 여러 겹으로 — 머리쪽일수록 더 많은 패스가 겹쳐 굵고 진해짐 */
@@ -1696,12 +1720,12 @@ function setLaser(on){
       document.body.appendChild(laserCanvas);
       lctx = laserCanvas.getContext("2d");
       laserResize();
-      addEventListener("resize", laserResize);
+      laserBindResize(true);
     }
     laserRaf = requestAnimationFrame(laserTick);
   }else{
     cancelAnimationFrame(laserRaf);
-    removeEventListener("resize", laserResize);
+    laserBindResize(false);
     if(laserDot){ laserDot.remove(); laserDot = null; }
     if(laserCanvas){ laserCanvas.remove(); laserCanvas = null; lctx = null; }
     lpts = [];
@@ -1714,10 +1738,12 @@ function laserMove(x, y){
   laserDot.style.display = "block";
   laserDot.style.left = x+"px";
   laserDot.style.top = y+"px";
+  /* 점(fixed 배치)은 클라이언트 좌표 그대로, 잔상은 캔버스 로컬 좌표로 변환해 저장 */
+  const cx = x - lox, cy = y - loy;
   /* 펜슬은 touch/pointer 이벤트가 같은 좌표로 중복 발생 → 같은 점은 꼬리에 넣지 않음 */
   const last = lpts[lpts.length - 1];
-  if(last && Math.abs(last.x - x) < 0.5 && Math.abs(last.y - y) < 0.5) return;
-  lpts.push({x, y, t: performance.now()});
+  if(last && Math.abs(last.x - cx) < 0.5 && Math.abs(last.y - cy) < 0.5) return;
+  lpts.push({x: cx, y: cy, t: performance.now()});
   if(lpts.length > 120) lpts.shift();
 }
 
@@ -1738,6 +1764,7 @@ document.addEventListener("touchstart", e=>{
   const t = e.touches[0];
   if(!isStylus(t) || onLaserBtn(e.target)) return;   /* 손가락·레이저 버튼은 그대로 */
   e.preventDefault();                                /* 스크롤 시작 자체를 차단 */
+  laserResize();                                     /* 획 시작 시점에 박스를 다시 측정 */
   laserMove(t.clientX, t.clientY);
 }, {passive:false});
 
