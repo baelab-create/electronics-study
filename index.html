@@ -977,8 +977,8 @@ function bandTypes(){
   const w=820, h=344, vT=200, vB=258;
   const cols=[
     {cx:150, t:"도체", cT:150, cB:vT, g:"밴드갭 없음 (겹침)", note:"전자가 곧바로 움직인다", c:"#2a78d6"},
-    {cx:410, t:"반도체", cT:112, cB:168, g:"E<tspan font-size="10" dy="3">g</tspan> ≈ 1.12 eV (Si)", note:"열·빛·전압으로 넘어갈 수 있다", c:"#2f6bff", hl:true},
-    {cx:670, t:"절연체", cT:52, cB:120, g:"E<tspan font-size="10" dy="3">g</tspan> ≈ 5.5 eV (다이아몬드)", note:"현실적으로 넘을 수 없다", c:"#7b8794"},
+    {cx:410, t:"반도체", cT:112, cB:168, g:"E<tspan font-size='10' dy='3'>g</tspan> ≈ 1.12 eV (Si)", note:"열·빛·전압으로 넘어갈 수 있다", c:"#2f6bff", hl:true},
+    {cx:670, t:"절연체", cT:52, cB:120, g:"E<tspan font-size='10' dy='3'>g</tspan> ≈ 5.5 eV (다이아몬드)", note:"현실적으로 넘을 수 없다", c:"#7b8794"},
   ];
   let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="도체 반도체 절연체의 에너지 밴드 비교">`;
   cols.forEach(o=>{
