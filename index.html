@@ -410,6 +410,7 @@ const CHAPTERS = [
 /* 고정 자료 페이지 (모든 학생에게 보임) */
 const MATERIALS = [
   {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지", icon:"📘", ch:"도입"},
+  {id:"discovery", title:"다이오드는 발명되지 않았다", sub:"실리콘 덩어리에 빛을 비췄더니", icon:"🔦", ch:"Ch.1"},
   {id:"forces", title:"자연계의 네 가지 힘", sub:"그리고 전자공학의 주인공", icon:"🌌", ch:"Ch.1"},
   {id:"atom-model", title:"원자모델", sub:"Atomic Models", icon:"⚛️", ch:"Ch.1"},
   {id:"electricity-flow", title:"전기는 흐르지 않는다", sub:"전자의 속도와 에너지의 정체", icon:"⚡", ch:"Ch.1"},
@@ -696,6 +697,7 @@ function renderMaterial(m){
   if(m.id === "electricity-flow") return renderElectricityFlow();
   if(m.id === "atom-model") return renderAtomModel();
   if(m.id === "chip-industry") return renderChipIndustry();
+  if(m.id === "discovery") return renderDiscovery();
   if(m.id === "forces") return renderForces();
   if(m.id === "hole") return renderHole();
   if(m.id === "why-07v") return renderWhy07V();
@@ -3647,6 +3649,193 @@ function renderSimulator(){
     <h3>📝 확인 문제</h3>
     <p class="quiz-lead">수식 없이 문장으로 답합니다.</p>
     ${SIM_QUIZ.map((x,i)=>`
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="quiz-no">${i+1}</span><span>${x.q}</span></div>
+        <details class="qa"><summary>정답 보기</summary><div class="a">${x.a}</div></details>
+      </div>`).join("")}
+  </div>`;
+}
+
+/* ───────── 고정 자료: 다이오드는 발명되지 않았다 ───────── */
+
+/* 교과서가 가르치는 순서와 역사가 흘러간 순서 */
+function textbookVsHistory(){
+  const w=820, h=350;
+  const box=(x,y,bw,t,sub,c,fill)=>{
+    let g=`<rect x="${x}" y="${y}" width="${bw}" height="58" rx="10" fill="${fill}" stroke="${c}" stroke-width="1.7"/>`;
+    g+=`<text x="${x+bw/2}" y="${y+25}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${c}">${t}</text>`;
+    g+=`<text x="${x+bw/2}" y="${y+43}" text-anchor="middle" font-size="10.5" fill="${VIZ.sub}">${sub}</text>`;
+    return g;
+  };
+  const arrow=(x1,x2,y,c)=>`<line x1="${x1}" y1="${y}" x2="${x2-8}" y2="${y}" stroke="${c}" stroke-width="2"/><path d="M${x2-9} ${y-5} L${x2-9} ${y+5} L${x2} ${y} Z" fill="${c}"/>`;
+  const BW=138, GAP=14, X0=24;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="교과서가 가르치는 순서와 실제 역사가 흘러간 순서의 비교">`;
+  /* 교과서 */
+  s += `<text x="${X0}" y="30" font-size="13.5" font-weight="800" fill="${VIZ.accent}">교재가 가르치는 순서 — 바닥부터 쌓아 올린다</text>`;
+  [["실리콘 원자","최외각 4개"],["공유결합","결정이 된다"],["p형 · n형","도핑"],["pn 접합","공핍층"],["다이오드","정류"]].forEach(([t,sub],i)=>{
+    const x = X0 + i*(BW+GAP);
+    s += box(x, 44, BW, t, sub, VIZ.accent, "#eef3ff");
+    if(i<4) s += arrow(x+BW, x+BW+GAP, 73, VIZ.accent);
+  });
+  /* 구분선 */
+  s += `<line x1="${X0}" y1="140" x2="${w-X0}" y2="140" stroke="${VIZ.grid}" stroke-width="1.4" stroke-dasharray="6 5"/>`;
+  s += `<text x="410" y="134" text-anchor="middle" font-size="11.5" font-weight="800" fill="${VIZ.muted}">그런데 실제로는 이 반대 방향으로 흘렀습니다</text>`;
+  /* 역사 */
+  s += `<text x="${X0}" y="176" font-size="13.5" font-weight="800" fill="#b7791f">실제 역사가 흘러간 순서 — 지붕에서 시작해 바닥을 찾아 내려갔다</text>`;
+  [["이상한 현상","1874 정류"],["\"왜 이러지?\"","설명이 없다"],["물리적 이해","1940 pn 접합"],["공학적 제어","의도적 도핑"],["설계된 소자","1954 이후"]].forEach(([t,sub],i)=>{
+    const x = X0 + i*(BW+GAP);
+    s += box(x, 190, BW, t, sub, "#b7791f", "#fff8e8");
+    if(i<4) s += arrow(x+BW, x+BW+GAP, 219, "#b7791f");
+  });
+  s += `<text x="410" y="300" text-anchor="middle" font-size="13" font-weight="800" fill="${VIZ.ink}">교과서의 순서는 <tspan fill="${VIZ.accent}">발견의 순서가 아니라 이해의 순서</tspan>입니다.</text>`;
+  s += `<text x="410" y="324" text-anchor="middle" font-size="12" fill="${VIZ.sub}">앞사람들이 70년에 걸쳐 거꾸로 더듬어 올라간 길을, 우리는 정리된 순서로 몇 주 만에 내려옵니다.</text>`;
+  return s+"</svg>";
+}
+
+/* 1940년, 균열이 난 실리콘 덩어리 */
+function ohlSample(){
+  const w=820, h=340;
+  const B={x:250,y:150,w:320,h:92}, seam=B.x+B.w/2;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="균열을 사이에 두고 성질이 반대인 실리콘 덩어리에 빛을 비추자 전압이 나타나는 그림">`;
+  /* 손전등 */
+  s += `<rect x="${seam-26}" y="34" width="52" height="30" rx="6" fill="#4a5462"/>`;
+  s += `<path d="M${seam-26} 64 L${seam+26} 64 L${seam+16} 78 L${seam-16} 78 Z" fill="#6b7684"/>`;
+  s += `<text x="${seam+42}" y="56" font-size="12.5" font-weight="800" fill="${VIZ.sub}">손전등</text>`;
+  for(let i=-2;i<=2;i++){
+    s += `<line x1="${seam+i*9}" y1="82" x2="${seam+i*30}" y2="${B.y-6}" stroke="#f2c94c" stroke-width="2.2" opacity=".85"/>`;
+  }
+  /* 실리콘 덩어리 */
+  s += `<rect x="${B.x}" y="${B.y}" width="${B.w/2}" height="${B.h}" fill="#f6d9d2" stroke="#3f4855" stroke-width="2"/>`;
+  s += `<rect x="${seam}" y="${B.y}" width="${B.w/2}" height="${B.h}" fill="#d3e2f7" stroke="#3f4855" stroke-width="2"/>`;
+  s += `<line x1="${seam}" y1="${B.y-6}" x2="${seam}" y2="${B.y+B.h+6}" stroke="#3f4855" stroke-width="2.6" stroke-dasharray="7 4"/>`;
+  s += `<text x="${B.x+B.w/4}" y="${B.y+40}" text-anchor="middle" font-size="19" font-weight="800" fill="#b42318">p</text>`;
+  s += `<text x="${B.x+B.w/4}" y="${B.y+66}" text-anchor="middle" font-size="10.5" fill="#b42318">붕소 쪽이 많았던 영역</text>`;
+  s += `<text x="${seam+B.w/4}" y="${B.y+40}" text-anchor="middle" font-size="19" font-weight="800" fill="#1c49c2">n</text>`;
+  s += `<text x="${seam+B.w/4}" y="${B.y+66}" text-anchor="middle" font-size="10.5" fill="#1c49c2">인 쪽이 많았던 영역</text>`;
+  s += `<text x="${seam}" y="${B.y+B.h+26}" text-anchor="middle" font-size="12" font-weight="800" fill="#3f4855">우연히 생긴 경계 (seam)</text>`;
+  s += `<text x="${B.x+B.w/2}" y="${B.y-22}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${VIZ.ink}">녹은 실리콘이 굳으면서 불순물이 한쪽으로 밀려났다</text>`;
+  /* 전압계 */
+  s += `<line x1="${B.x}" y1="${B.y+B.h/2}" x2="${B.x-70}" y2="${B.y+B.h/2}" stroke="${VIZ.ink}" stroke-width="2"/>`;
+  s += `<line x1="${B.x+B.w}" y1="${B.y+B.h/2}" x2="${B.x+B.w+70}" y2="${B.y+B.h/2}" stroke="${VIZ.ink}" stroke-width="2"/>`;
+  s += `<line x1="${B.x-70}" y1="${B.y+B.h/2}" x2="${B.x-70}" y2="${B.y+B.h+50}" stroke="${VIZ.ink}" stroke-width="2"/>`;
+  s += `<line x1="${B.x+B.w+70}" y1="${B.y+B.h/2}" x2="${B.x+B.w+70}" y2="${B.y+B.h+50}" stroke="${VIZ.ink}" stroke-width="2"/>`;
+  s += `<line x1="${B.x-70}" y1="${B.y+B.h+50}" x2="${B.x+B.w+70}" y2="${B.y+B.h+50}" stroke="${VIZ.ink}" stroke-width="2"/>`;
+  s += `<circle cx="410" cy="${B.y+B.h+50}" r="26" fill="#fff" stroke="#0f9d6e" stroke-width="2.4"/>`;
+  s += `<text x="410" y="${B.y+B.h+55}" text-anchor="middle" font-size="13" font-weight="800" fill="#0a7d57">V</text>`;
+  s += `<text x="410" y="${B.y+B.h+92}" text-anchor="middle" font-size="14" font-weight="800" fill="#0a7d57">약 0.5 V</text>`;
+  s += `<text x="410" y="${h-10}" text-anchor="middle" font-size="12" fill="${VIZ.muted}">전지도, 전원도 연결하지 않았습니다. 빛을 비췄을 뿐인데 전압이 나타났습니다.</text>`;
+  return s+"</svg>";
+}
+
+const DISC_ERAS = [
+  {y:"1874", t:"브라운 — 이상한 접점", d:"금속 침을 광석에 대면 전류가 <b>한쪽으로만 잘 흐른다</b>는 것을 발견했습니다. 전자도 발견되기 전이라 이유는 아무도 몰랐습니다."},
+  {y:"1900 – 1920년대", t:"이유도 모른 채 팔린 소자", d:"라디오 초창기의 광석 검파기가 이 현상을 이용했습니다. 사용자가 침을 옮겨 가며 잘 되는 지점을 손으로 찾아야 했습니다."},
+  {y:"1940", t:"오울 — 균열 난 실리콘", d:"벨 연구소의 러셀 오울이 실리콘 샘플에서 <b>경계를 사이에 두고 전기적 성질이 반대</b>인 영역을 발견하고, 빛을 비추자 전압이 생기는 것을 확인했습니다.", hl:true},
+  {y:"1940년대", t:"p형과 n형이라는 이름", d:"이 두 영역을 구분해 부르려고 붙인 이름이 오늘날의 <b>p형·n형</b>입니다. 1장에서 배우는 그 이름이 이 균열 난 덩어리에서 나왔습니다.", hl:true},
+  {y:"1947 – 1948", t:"트랜지스터", d:"바딘과 브래튼이 점접촉 트랜지스터를 만들고, 쇼클리가 <b>pn 접합 이론</b> 위에서 접합 트랜지스터를 구상합니다. 오울의 발견이 직접적인 토대가 됩니다."},
+  {y:"1954", t:"실용적인 실리콘 태양전지", d:"채핀·풀러·피어슨이 <b>의도적으로</b> pn 접합을 만들어 효율 약 6%의 태양전지를 내놓습니다. 우연히 본 현상을 설계로 재현해 낸 것입니다.", hl:true},
+];
+
+const DISC_LINKS = [
+  {u:"https://www.computerhistory.org/siliconengine/discovery-of-the-p-n-junction/", t:"Discovery of the p-n Junction (컴퓨터역사박물관)", s:"1940년 오울의 발견을 정리한 문서. 영어지만 짧습니다."},
+  {u:"https://www.computerhistory.org/siliconengine/conception-of-the-junction-transistor/", t:"Conception of the Junction Transistor", s:"그 발견이 어떻게 접합 트랜지스터로 이어졌는지"},
+];
+
+const DISC_QUIZ = [
+  {q:"1940년 러셀 오울이 원래 하려던 연구는 무엇이었으며, 실제로 발견한 것은 무엇인가?",
+   a:"원래 목적은 <b>태양전지가 아니라</b> 통신과 레이더에 쓸 실리콘 정류기(검파기)를 연구하는 것이었다.<br>그런데 실리콘 샘플 하나에서 경계(균열)를 사이에 두고 <b>전기적 성질이 서로 반대</b>인 두 영역을 발견했고, 여기에 빛을 비추자 전압이 생기는 것을 확인했다. 이것이 실리콘에서의 <b>pn 접합</b> 발견이다."},
+  {q:"그 실리콘 덩어리 안에 어떻게 p형과 n형의 경계가 저절로 생겼는가?",
+   a:"녹은 실리콘이 <b>굳는 과정에서 불순물이 고르게 남지 않고 한쪽으로 밀려났기</b> 때문이다. 그 결과 경계를 사이에 두고 한쪽은 붕소 계열이, 다른 쪽은 인 계열이 우세한 상태가 되었다.<br>즉 누가 의도적으로 도핑한 것이 아니라 <b>결정이 굳으면서 우연히</b> p형과 n형이 만들어진 것이다."},
+  {q:"오울의 발견을 '최초의 태양전지'라고 하면 왜 부정확한가?",
+   a:"빛으로 전기가 생기는 현상 자체는 훨씬 전부터 알려져 있었고, 셀레늄을 쓴 태양전지는 <b>19세기</b>에 이미 있었다.<br>오울의 발견은 <b>실리콘 pn 접합에서의 강한 광기전 효과</b>를 발견한 것이며, 실용적인 실리콘 태양전지는 <b>1954년</b> 벨 연구소의 채핀·풀러·피어슨이 의도적으로 접합을 만들어 완성했다."},
+  {q:"이 발견이 태양전지뿐 아니라 트랜지스터로도 이어진 이유는?",
+   a:"발견의 본질이 '빛으로 전기가 생긴다'가 아니라 <b>'성질이 다른 두 영역이 맞닿으면 특별한 일이 일어난다'</b>였기 때문이다.<br>그 경계, 즉 pn 접합에 대한 이해가 정리되자 정류도, 광기전 효과도, 그리고 <b>증폭</b>까지 같은 원리 위에서 설명할 수 있게 됐다. 쇼클리의 접합 트랜지스터가 그 위에 세워졌다."},
+  {q:"교과서가 가르치는 순서와 실제 역사의 순서는 왜 반대이며, 그런데도 교과서 순서로 배우는 것이 왜 합리적인가?",
+   a:"역사는 <b>이상한 현상을 먼저 만나고</b> 그 이유를 수십 년에 걸쳐 거꾸로 더듬어 올라갔다. 반면 교과서는 원자와 공유결합처럼 <b>가장 밑바닥</b>에서 시작해 다이오드까지 쌓아 올린다.<br>교과서의 순서는 <b>발견의 순서가 아니라 이해의 순서</b>이기 때문이다. 이미 답을 아는 상태에서 남에게 가장 빠르게 전달하는 길은 밑에서부터 쌓는 것이다. 앞사람들이 70년 걸려 올라간 길을 우리는 정리된 순서로 몇 주 만에 내려온다."},
+];
+
+function renderDiscovery(){
+  return `
+  <span class="ch-eyebrow">추가 자료</span>
+  <h2 class="ch-title">다이오드는 발명되지 않았다</h2>
+  <p class="ch-sub">실리콘 덩어리에 빛을 비췄더니</p>
+  <p class="mat-section-note">1장은 실리콘 원자에서 시작해 공유결합, 도핑, pn 접합을 거쳐 다이오드로 갑니다. 아주 깔끔한 순서죠.<br>
+  그런데 <b>실제 역사는 정확히 그 반대로 흘렀습니다.</b> 아무도 이론을 먼저 세우고 다이오드를 설계하지 않았습니다.
+  이상한 현상이 먼저 있었고, 그 이유를 알아내는 데 <b>70년</b>이 걸렸습니다.</p>
+
+  <div class="card">
+    <h3>🔄 두 개의 순서</h3>
+    <div class="chart-wrap">${textbookVsHistory()}</div>
+    <p class="chart-note">위가 여러분이 이번 학기에 걸어갈 길이고, 아래가 앞사람들이 실제로 걸었던 길입니다.
+    <b>출발점이 정반대</b>입니다. 이 페이지는 아래쪽 길을 따라가 봅니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🔦 1940년, 균열이 난 실리콘 덩어리</h3>
+    <p class="mat-section-note">벨 연구소의 <b>러셀 오울</b>은 실리콘을 연구하고 있었습니다. 목적은 태양전지가 아니었습니다.
+    통신과 레이더에 쓸 <b>실리콘 정류기</b>를 만드는 것이었죠.</p>
+    <p class="mat-section-note">그런데 샘플 하나가 이상했습니다. 가운데에 <b>경계처럼 보이는 균열</b>이 있었고,
+    그 양쪽에서 측정한 전기적 성질이 <b>서로 반대</b>로 나왔습니다. 그리고 1940년 2월, 여기에 밝은 빛을 비추자 전류가 크게 늘어났습니다.</p>
+    <div class="chart-wrap">${ohlSample()}</div>
+    <p class="chart-note">전지도 전원도 연결하지 않은 실리콘 조각에서 손전등을 비추자 <b>약 0.5V</b>가 나왔습니다.
+    같은 연구소의 월터 브래튼은 이 장면을 보고 <b>처음에는 믿기 어려웠다</b>고 회고했습니다.
+    7년 뒤 트랜지스터를 만들게 되는 바로 그 사람입니다.</p>
+    <p class="mat-section-note">원인을 조사해 보니 답은 <b>불순물</b>이었습니다. 녹은 실리콘이 굳는 과정에서 불순물이 고르게 남지 않고 한쪽으로 밀려났고,
+    그 결과 경계 한쪽은 붕소 계열이, 다른 쪽은 인 계열이 우세해졌습니다.
+    <b>누가 도핑한 것이 아니라, 결정이 굳으면서 저절로 p형과 n형이 만들어진 것</b>입니다.</p>
+  </div>
+
+  <div class="callout">
+    <h3>🏷️ 'p형'과 'n형'이라는 이름이 여기서 나왔습니다</h3>
+    <p>이 두 영역을 구분해 불러야 했으므로 이름이 필요했습니다. 그래서 붙인 것이 <b>p형</b>(positive)과 <b>n형</b>(negative)입니다.<br><br>
+    여러분이 1장에서 배우는, 그리고 앞으로 4년 내내 쓰게 될 그 이름이 <b>1940년 벨 연구소의 균열 난 실리콘 덩어리에서 나왔습니다.</b>
+    이론에서 유도된 용어가 아니라, <b>눈앞의 이상한 물건에 붙인 별명</b>이 그대로 표준이 된 것입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>🕰️ 70년의 흐름</h3>
+    <div class="era-grid">
+      ${DISC_ERAS.map(e=>`<div class="era-card${e.hl?" hl":""}"><span class="era-year">${e.y}</span><h4>${e.t}</h4><p>${e.d}</p></div>`).join("")}
+    </div>
+    <p class="mat-section-note">1874년의 브라운 이야기는 <b>「다이오드는 왜 0.7V인가」</b> 페이지에서 더 자세히 다룹니다.
+    거기서는 <b>원리를 모른 채 20년 넘게 팔린 소자</b> 이야기가 이어집니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>☀️ 다만 '최초의 태양전지'는 아닙니다</h3>
+    <div class="fact-grid">
+      <div class="fact-card myth"><span class="fact-tag">흔한 오해</span><p>오울이 1940년에 최초의 태양전지를 발명했다.</p></div>
+      <div class="fact-card truth"><span class="fact-tag">실제</span><p>빛으로 전기가 생기는 현상은 훨씬 전부터 알려져 있었고, <b>셀레늄 태양전지는 19세기</b>에 이미 있었다. 오울의 발견은 <b>실리콘 pn 접합에서의 강한 광기전 효과</b>를 발견한 것이다.</p></div>
+      <div class="fact-card myth"><span class="fact-tag">흔한 오해</span><p>그 발견이 곧바로 태양전지 제품으로 이어졌다.</p></div>
+      <div class="fact-card truth"><span class="fact-tag">실제</span><p>실용적인 실리콘 태양전지는 <b>1954년</b> 벨 연구소의 채핀·풀러·피어슨이 만들었다. 우연히 생긴 접합을 <b>의도적으로 만들 수 있게 되기까지</b> 14년이 더 걸린 셈이다.</p></div>
+    </div>
+    <p class="mat-section-note">이 구분이 중요한 이유가 있습니다. <b>현상을 보는 것</b>과 <b>그것을 원할 때 만들어 내는 것</b> 사이에는 큰 간격이 있습니다.
+    그 간격을 메우는 일이 바로 <b>공학</b>입니다.</p>
+  </div>
+
+  <div class="callout">
+    <h3>🎓 그래서 우리는 왜 공유결합부터 배우는가</h3>
+    <p>역사가 현상에서 시작했다면, 수업도 현상에서 시작해야 하는 것 아닐까요? 그렇지 않습니다.<br><br>
+    앞사람들이 밑바닥을 더듬어 올라간 이유는 <b>답을 몰랐기 때문</b>입니다. 우리는 답을 압니다.
+    답을 아는 상태에서 그것을 가장 빠르고 튼튼하게 전달하는 길은 <b>밑에서부터 쌓아 올리는 것</b>입니다.
+    교과서의 순서는 <b>발견의 순서가 아니라 이해의 순서</b>입니다.<br><br>
+    다만 한 가지는 기억해 둘 만합니다. 지금 배우는 깔끔한 순서는 <b>결과물</b>이지 과정이 아니었다는 것입니다.
+    실제 연구는 언제나 이상한 현상 앞에서 <b>"이게 왜 이러지?"</b>라고 묻는 데서 시작합니다.
+    여러분이 나중에 실험실이나 회사에서 만나게 될 것도 정리된 교과서가 아니라 <b>설명되지 않는 데이터</b>일 것입니다.<br><br>
+    그때 필요한 것이 이번 학기에 쌓는 밑바닥입니다. <b>밑바닥이 있어야 이상한 현상을 설명할 수 있습니다.</b></p>
+  </div>
+
+  <div class="card">
+    <h3>📚 더 읽을거리</h3>
+    <div class="link-cards">
+      ${DISC_LINKS.map(l=>`<a class="link-card" href="${l.u}" target="_blank" rel="noopener"><b>${esc(l.t)}</b><span>${esc(l.s)}</span></a>`).join("")}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📝 확인 문제</h3>
+    <p class="quiz-lead">수식 없이 문장으로 답합니다.</p>
+    ${DISC_QUIZ.map((x,i)=>`
       <div class="quiz-item">
         <div class="quiz-q"><span class="quiz-no">${i+1}</span><span>${x.q}</span></div>
         <details class="qa"><summary>정답 보기</summary><div class="a">${x.a}</div></details>
