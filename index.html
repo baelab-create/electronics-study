@@ -304,20 +304,9 @@
   #laserBtn .dot{width:10px; height:10px; border-radius:50%; background:#e34948;}
   #laserBtn.on{background:#e34948; border-color:#e34948; color:#fff;}
   #laserBtn.on .dot{background:#fff; box-shadow:0 0 8px 2px rgba(255,255,255,.8);}
-  #laserHoldBtn{
-    position:fixed; right:22px; bottom:72px; z-index:1000; display:none;
-    align-items:center; gap:7px;
-    padding:9px 14px; border-radius:999px; border:1px solid var(--line);
-    background:var(--panel); color:var(--ink); font-family:inherit;
-    font-size:12.5px; font-weight:700; cursor:pointer;
-    box-shadow:0 4px 14px rgba(16,24,40,.14); transition:.15s;
-  }
-  body.laser-on #laserHoldBtn{display:flex;}
-  #laserHoldBtn.on{background:#1f7a4d; border-color:#1f7a4d; color:#fff;}
   body.laser-on, body.laser-on *{cursor:none !important;}
   body.laser-on{user-select:none; -webkit-user-select:none;}
-  body.laser-on #laserBtn, body.laser-on #laserBtn *,
-  body.laser-on #laserHoldBtn, body.laser-on #laserHoldBtn *{cursor:pointer !important;}
+  body.laser-on #laserBtn, body.laser-on #laserBtn *{cursor:pointer !important;}
   .laser-dot{
     position:fixed; left:0; top:0; width:16px; height:16px; border-radius:50%;
     background:radial-gradient(circle, #ffd9d9 0%, #ff4b4b 40%, #d40000 100%);
@@ -358,7 +347,6 @@
 <main id="main"><div class="view" id="view"></div></main>
 
 <button id="laserBtn" title="단축키: L 또는 Esc로 끄기"><span class="dot"></span>레이저 포인터</button>
-<button id="laserHoldBtn" title="단축키: H — 그은 자국을 다음 획까지 남겨 둡니다 (PC에서는 마우스 왼쪽 버튼을 누른 채 드래그)">✏️ 잔상 유지</button>
 
 <script>
 /* ───────── 데이터 ───────── */
@@ -1686,20 +1674,17 @@ function deletePage(id){
 
 /* ───────── 레이저 포인터 ───────── */
 const laserBtn = document.getElementById("laserBtn");
-const TRAIL_TTL = 420;   /* 꼬리 잔상 지속시간(ms) */
 let laserOn = false, laserDot = null, laserCanvas = null, lctx = null, lpts = [], laserRaf = 0;
 /* 캔버스가 화면에서 실제로 차지하는 박스(CSS px). 클라이언트 좌표를 캔버스 좌표로 옮길 때 쓴다 */
 let lox = 0, loy = 0, lw = 0, lh = 0;
 
-/* ── 잔상 유지 모드 ──
-   기본 모드: 좌표에 시각을 찍어 두고 TRAIL_TTL이 지난 점을 매 프레임 버린다(꼬리가 흐른다).
-   유지 모드: 만료시키지 않고, 획을 뗀 순간 그대로 고정했다가 다음 획이 시작될 때 지운다. */
-const LS_LASER_HOLD = "elec-laser-hold";
-let laserHold = false;      /* 유지 모드 on/off */
+/* ── 잔상 유지 ──
+   시간이 지나면 흐려지는 방식이 아니라, 획을 뗀 순간 그대로 고정했다가
+   다음 획이 시작될 때 지운다. 티칭 사이트(electronics-teaching-2026)와 같은 동작.
+   획의 기준은 '접촉' — 펜슬이 화면에 닿아 있거나 마우스 왼쪽 버튼을 누른 상태. */
+const LASER_MAX_PTS = 2000;
 let laserFrozen = false;    /* 지금 잔상이 고정되어 있는가 */
-let laserDrawing = false;   /* 획을 긋는 중인가 (펜슬이 닿아 있거나 마우스 버튼을 누른 상태) */
-const laserHoldBtn = document.getElementById("laserHoldBtn");
-try{ laserHold = localStorage.getItem(LS_LASER_HOLD) === "1"; }catch(e){}
+let laserDrawing = false;   /* 획을 긋는 중인가 */
 
 /* iOS Safari에서 100vh(주소창 숨김 기준 높이) ≠ innerHeight(현재 보이는 높이) 이므로
    크기를 추정하지 않고 캔버스의 실제 렌더 박스를 재서 버퍼를 맞춘다.
@@ -1740,8 +1725,6 @@ function laserBindResize(on){
 
 function laserTick(){
   if(!laserOn || !lctx) return;
-  const now = performance.now();
-  if(!laserHold) lpts = lpts.filter(p => now - p.t < TRAIL_TTL);
   lctx.clearRect(0, 0, lw, lh);
   const N = lpts.length;
   if(N > 1){
@@ -1767,27 +1750,15 @@ function laserTick(){
 function laserStrokeStart(){
   if(!laserOn) return;
   laserDrawing = true;
-  if(laserHold && laserFrozen){ lpts = []; laserFrozen = false; }
+  if(laserFrozen){ lpts = []; laserFrozen = false; }
   if(!laserRaf) laserRaf = requestAnimationFrame(laserTick);
 }
 function laserStrokeEnd(){
   if(!laserOn) return;
   laserDrawing = false;
-  /* 유지 모드면 지금 모습 그대로 고정(다음 프레임이 한 번 더 그린 뒤 멈춘다) */
-  if(laserHold) laserFrozen = true;
+  /* 지금 모습 그대로 고정한다(다음 프레임이 한 번 더 그린 뒤 멈춘다) */
+  laserFrozen = true;
 }
-
-function setLaserHold(v){
-  laserHold = v;
-  laserHoldBtn.classList.toggle("on", v);
-  try{ localStorage.setItem(LS_LASER_HOLD, v ? "1" : "0"); }catch(e){}
-  if(!v){                       /* 유지 모드를 끄면 남아 있던 잔상을 흘려보낸다 */
-    laserFrozen = false;
-    if(laserOn && !laserRaf) laserRaf = requestAnimationFrame(laserTick);
-  }
-}
-laserHoldBtn.onclick = ()=> setLaserHold(!laserHold);
-setLaserHold(laserHold);
 
 function setLaser(on){
   laserOn = on;
@@ -1834,37 +1805,35 @@ function laserMove(x, y, record){
   const last = lpts[lpts.length - 1];
   if(last && Math.abs(last.x - cx) < 0.5 && Math.abs(last.y - cy) < 0.5) return;
   lpts.push({x: cx, y: cy, t: performance.now()});
-  const cap = laserHold ? 2000 : 120;   /* 유지 모드는 긴 획을 통째로 보관 */
-  if(lpts.length > cap) lpts.shift();
+  if(lpts.length > LASER_MAX_PTS) lpts.shift();
 }
 
 /* 애플 펜슬(스타일러스) = 레이저만 이동(스크롤 차단), 손가락 = 평소대로 스크롤 */
 function isStylus(t){ return !!t && t.touchType === "stylus"; }
-function onLaserBtn(el){ return !!(el && el.closest && el.closest("#laserBtn, #laserHoldBtn")); }
+function onLaserBtn(el){ return !!(el && el.closest && el.closest("#laserBtn")); }
 
 document.addEventListener("mousemove", e=>{
   if(!laserOn) return;
-  if(!laserHold){ laserMove(e.clientX, e.clientY); return; }   /* 기본 모드는 예전 그대로 */
-  /* 유지 모드에서는 왼쪽 버튼을 누른 채 움직일 때만 획으로 인정한다 */
+  /* 왼쪽 버튼을 누른 채 움직일 때만 획으로 인정한다. 그냥 움직이면 붉은 점만 따라온다 */
   const contact = (e.buttons & 1) === 1;
   if(contact && !laserDrawing) laserStrokeStart();
   laserMove(e.clientX, e.clientY, contact);
 });
 document.addEventListener("mousedown", e=>{
-  if(!laserOn || !laserHold || e.button !== 0 || onLaserBtn(e.target)) return;
+  if(!laserOn || e.button !== 0 || onLaserBtn(e.target)) return;
   laserStrokeStart();
   laserMove(e.clientX, e.clientY, true);
 });
 document.addEventListener("mouseup", e=>{
-  if(!laserOn || !laserHold || e.button !== 0) return;
+  if(!laserOn || e.button !== 0) return;
   laserStrokeEnd();
 });
 
 /* 펜슬 호버(지원 기기)에서도 포인터가 따라오도록 */
 document.addEventListener("pointermove", e=>{
   if(!laserOn || e.pointerType !== "pen") return;
-  /* 유지 모드에서는 펜슬이 화면에 닿아 있을 때(pressure>0)만 꼬리에 기록한다 */
-  laserMove(e.clientX, e.clientY, !laserHold || e.pressure > 0);
+  /* 펜슬이 화면에 닿아 있을 때(pressure>0)만 꼬리에 기록한다. 띄운 상태에서는 점만 이동 */
+  laserMove(e.clientX, e.clientY, e.pressure > 0);
 });
 
 /* passive:false 여야 preventDefault()로 스크롤을 막을 수 있다 */
@@ -1898,7 +1867,6 @@ document.addEventListener("keydown", e=>{
   const tag = (document.activeElement||{}).tagName;
   if(tag==="INPUT"||tag==="TEXTAREA") return;
   if(e.key==="l"||e.key==="L") setLaser(!laserOn);
-  if(e.key==="h"||e.key==="H") setLaserHold(!laserHold);
   if(e.key==="Escape" && laserOn) setLaser(false);
 });
 
