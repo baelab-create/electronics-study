@@ -45,8 +45,13 @@
     font-size:11px; font-weight:800; letter-spacing:.02em;
   }
   .nav-item.active .chip{background:rgba(255,255,255,.25);}
-  .nav-item .t{flex:1; line-height:1.3;}
+  .nav-item .t{flex:1; line-height:1.3; min-width:0;}
   .nav-item .t small{display:block; font-size:11px; color:#8b97ab; font-weight:400; margin-top:2px;}
+  /* 자료 페이지는 제목이 길어 잘 접힌다 — 글자를 줄이고 어절 단위로만 줄바꿈 */
+  #customNav .nav-item{padding:10px 14px; gap:10px;}
+  #customNav .nav-item .t{font-size:12.5px; word-break:keep-all;}
+  #customNav .nav-item .t small{font-size:10px; margin-top:3px; word-break:keep-all;}
+  #customNav .nav-item .chip{min-width:30px; height:22px; font-size:12px;}
   .nav-item.active .t small{color:#dbe4ff;}
   .nav-item .del{
     opacity:0; border:0; background:transparent; color:inherit; cursor:pointer;
@@ -260,10 +265,11 @@
     vertical-align:2px; letter-spacing:.01em;
   }
   .nav-item .ch-pill{
-    margin-left:auto; flex:none; background:rgba(255,255,255,.14); color:#c7d2e3;
-    font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px;
+    display:inline-block; background:rgba(255,255,255,.14); color:#c7d2e3;
+    font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:999px;
+    margin-right:5px; vertical-align:1px; font-style:normal;
   }
-  .nav-item.active .ch-pill{background:rgba(255,255,255,.24); color:#fff;}
+  .nav-item.active .ch-pill{background:rgba(255,255,255,.26); color:#fff;}
   .hist{
     background:#fbf7ef; border:1px solid #e6dcc6; border-left:4px solid #b08b3f;
     border-radius:0 var(--radius) var(--radius) 0; padding:20px 24px; margin-top:22px;
@@ -416,7 +422,7 @@ const MATERIALS = [
   {id:"smallsignal", title:"소신호 등가회로", sub:"왜 갑자기 회로가 바뀌는가", icon:"〰️", ch:"Ch.5"},
   {id:"inside-phone", title:"내 폰 안에는 뭐가 들어있나", sub:"배운 내용이 만나는 지점", icon:"📱", ch:"전 챕터"},
   {id:"simulator", title:"시뮬레이터로 확인하기", sub:"직접 돌려보는 회로", icon:"🧪", ch:"전 챕터"},
-  {id:"chip-industry", title:"반도체 회사의 종류와 구도", sub:"메모리·비메모리 / IDM·팹리스·파운드리", icon:"🏭", ch:"산업"},
+  {id:"chip-industry", title:"반도체 회사의 종류와 구도", sub:"누가 무엇을 만드는가", icon:"🏭", ch:"산업"},
 ];
 
 const LS_KEY = "elec-custom-pages-v1";
@@ -456,8 +462,8 @@ function renderNav(){
   MATERIALS.forEach(m=>{
     const b = document.createElement("button");
     b.className = "nav-item" + (current.type==="material"&&current.id===m.id ? " active":"");
-    b.innerHTML = `<span class="chip">${m.icon||"📘"}</span><span class="t">${m.title}<small>${m.sub}</small></span>`
-      + (m.ch ? `<span class="ch-pill">${m.ch}</span>` : "");
+    b.innerHTML = `<span class="chip">${m.icon||"📘"}</span><span class="t">${m.title}` +
+      `<small>${m.ch ? `<i class="ch-pill">${m.ch}</i>` : ""}${m.sub}</small></span>`;
     b.onclick = ()=>{ current={type:"material",id:m.id}; render(); };
     cNav.appendChild(b);
   });
