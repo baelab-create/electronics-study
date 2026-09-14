@@ -410,6 +410,7 @@ const CHAPTERS = [
 /* 고정 자료 페이지 (모든 학생에게 보임) */
 const MATERIALS = [
   {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지", icon:"📘", ch:"도입"},
+  {id:"yt-library", title:"유튜브 자료실", sub:"수업 참고 영상 모음", icon:"▶️", ch:"전 챕터"},
   {id:"discovery", title:"다이오드는 발명되지 않았다", sub:"실리콘 덩어리에 빛을 비췄더니", icon:"🔦", ch:"Ch.1"},
   {id:"forces", title:"자연계의 네 가지 힘", sub:"그리고 전자공학의 주인공", icon:"🌌", ch:"Ch.1"},
   {id:"atom-model", title:"원자모델", sub:"Atomic Models", icon:"⚛️", ch:"Ch.1"},
@@ -694,6 +695,7 @@ const NODE_TABLE = [
 ];
 
 function renderMaterial(m){
+  if(m.id === "yt-library") return renderYtLibrary();
   if(m.id === "electricity-flow") return renderElectricityFlow();
   if(m.id === "atom-model") return renderAtomModel();
   if(m.id === "chip-industry") return renderChipIndustry();
@@ -709,6 +711,36 @@ function renderMaterial(m){
   if(m.id === "datasheet") return renderDatasheet();
   if(m.id === "simulator") return renderSimulator();
   return renderSemiHistory();
+}
+
+/* ───────── 고정 자료: 유튜브 자료실 ───────── */
+/* 새 영상 추가: 아래 배열에 {id, t(제목), ch(챕터), by(채널), note(선택)} 한 줄만 추가하면 됩니다 */
+const YT_LIBRARY = [
+  {id:"KFCgeI4j-Ig", t:"Introduction to Bipolar Junction Transistors (BJT)", by:"Neso Academy", ch:"Ch.3",
+   note:"BJT의 구조(npn·pnp)와 세 단자를 기초부터 설명하는 영어 강의 — 3장 예습·복습용."},
+];
+
+function renderYtLibrary(){
+  const groups = [...new Set(YT_LIBRARY.map(v=>v.ch))];
+  return `
+  <span class="ch-eyebrow">추가 자료</span>
+  <h2 class="ch-title">▶️ 유튜브 자료실</h2>
+  <p class="ch-sub">수업에서 소개한 영상과 참고 영상을 챕터별로 모아둔 곳입니다.</p>
+  ${groups.map(g=>`
+  <div class="card">
+    <h3>${esc(g)}</h3>
+    <div class="yt-grid">
+      ${YT_LIBRARY.filter(v=>v.ch===g).map(v=>`
+        <div class="yt-item">
+          <iframe src="https://www.youtube.com/embed/${v.id}" title="${esc(v.t)}" loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+          <div class="yt-cap"><span><b>${esc(v.t)}</b> · ${esc(v.by)}</span></div>
+          ${v.note ? `<p class="chart-note" style="margin-top:6px;">${esc(v.note)}</p>` : ""}
+        </div>`).join("")}
+    </div>
+  </div>`).join("")}
+  <p class="mat-section-note">영상 추가를 원하면 교수님께 링크를 보내주세요 — 다음 업데이트 때 반영됩니다.</p>`;
 }
 
 /* ───────── 고정 자료: 원자모델 ───────── */
