@@ -352,6 +352,150 @@
   #laserCanvas{position:fixed; left:0; top:0; width:100%; height:100vh; pointer-events:none; z-index:1999;}
   @supports (height:100dvh){ #laserCanvas{height:100dvh;} }
 
+
+  /* ═════════════════ 뉴모피즘 레이어 ═════════════════
+     기존 규칙을 덮어쓰는 방식이라 이 블록만 지우면 원래 디자인으로 돌아갑니다.
+     핵심 원리: 배경과 면이 같은 색이고, 빛은 왼쪽 위에서 온다고 가정해
+     오른쪽 아래에 어두운 그림자를, 왼쪽 위에 흰 하이라이트를 준다. */
+  :root{
+    --bg:#e9ebf0; --panel:#e9ebf0; --line:#d7dbe4;
+    --ink:#2b323d; --muted:#5f6775;
+    --accent-soft:#dde5fa;
+    --nm-d:rgba(160,170,190,.55);     /* 어두운 그림자 */
+    --nm-l:#ffffff;                   /* 밝은 하이라이트 */
+    --nm-out:7px 7px 14px var(--nm-d), -7px -7px 14px var(--nm-l);
+    --nm-out-s:4px 4px 9px var(--nm-d), -4px -4px 9px var(--nm-l);
+    --nm-out-xs:2px 2px 5px var(--nm-d), -2px -2px 5px var(--nm-l);
+    --nm-in:inset 5px 5px 10px var(--nm-d), inset -5px -5px 10px var(--nm-l);
+    --nm-in-s:inset 3px 3px 7px var(--nm-d), inset -3px -3px 7px var(--nm-l);
+    --nm-in-xs:inset 2px 2px 4px var(--nm-d), inset -2px -2px 4px var(--nm-l);
+    --radius:18px;
+  }
+
+  /* ── 사이드바 ── */
+  #sidebar{background:var(--bg); color:var(--ink); box-shadow:inset -10px 0 16px -12px var(--nm-d);}
+  .brand{border-bottom:0; padding-bottom:10px;}
+  .brand h1{color:var(--ink);}
+  .brand p{color:var(--muted);}
+  .nav-label{color:#818b9b;}
+  .nav-item{
+    background:transparent; color:#4a5361; box-shadow:none;
+    margin:3px 12px; width:calc(100% - 24px); border-radius:14px;
+    transition:box-shadow .18s, color .18s;
+  }
+  .nav-item:hover{background:transparent; box-shadow:var(--nm-out-xs);}
+  .nav-item.active{background:transparent; color:var(--accent-ink); font-weight:800; box-shadow:var(--nm-in-s);}
+  .nav-item .t small{color:#7d8695;}
+  .nav-item.active .t small{color:#5f75bd;}
+  .chip{background:var(--bg); color:#5f6775; box-shadow:var(--nm-out-xs);}
+  .nav-item.active .chip{background:var(--bg); color:var(--accent-ink); box-shadow:var(--nm-in-xs);}
+  .nav-item .ch-pill{background:var(--bg); color:#6f7787; box-shadow:var(--nm-out-xs);}
+  .nav-item.active .ch-pill{background:var(--bg); color:var(--accent-ink); box-shadow:var(--nm-in-xs);}
+  .nav-item .del{color:#8790a0;}
+  .nav-item .del:hover{background:transparent; box-shadow:var(--nm-in-xs); color:#c0392b;}
+  #addPageBtn{
+    border:0; background:var(--bg); color:#5f6775; border-radius:14px;
+    box-shadow:var(--nm-out-s); margin:14px 16px 24px;
+  }
+  #addPageBtn:hover{background:var(--bg); color:var(--accent-ink); box-shadow:var(--nm-out);}
+  #addPageBtn:active{box-shadow:var(--nm-in-s);}
+  .sidebar-foot{border-top:0; color:#858e9d;}
+
+  /* ── 카드 계열: 배경과 같은 색 + 볼록 그림자 ── */
+  .card, .notice-item, .era-card, .biz-card, .fact-card, .link-card{
+    background:var(--bg); border:0; border-radius:var(--radius); box-shadow:var(--nm-out);
+  }
+  .era-card.hl, .biz-card.hl{
+    border:0; box-shadow:var(--nm-out), inset 0 0 0 1.5px rgba(47,107,255,.35);
+  }
+  .fact-card.myth{background:#eeeaea; border:0; box-shadow:var(--nm-out), inset 0 0 0 1.5px rgba(180,35,24,.16);}
+  .fact-card.truth{background:#e6eaf3; border:0; box-shadow:var(--nm-out), inset 0 0 0 1.5px rgba(47,107,255,.18);}
+  .link-card{box-shadow:var(--nm-out-s);}
+  .link-card:hover{border:0; box-shadow:var(--nm-out);}
+  .notice-item.pinned{border-left:0; box-shadow:var(--nm-out), inset 4px 0 0 var(--accent);}
+
+  /* ── 색이 있는 안내 상자 ── */
+  .callout{background:#efeadd; border:0; box-shadow:var(--nm-out);}
+  .callout p{color:#4a4636;}
+  .hist{
+    background:#eee8dc; border:0; border-left:0; border-radius:var(--radius);
+    box-shadow:var(--nm-out), inset 5px 0 0 #b08b3f;
+  }
+  .quote{
+    background:#e3e8f4; border-left:0; border-radius:var(--radius);
+    box-shadow:var(--nm-out), inset 5px 0 0 var(--accent);
+  }
+  .calc{background:var(--bg); border:0; box-shadow:var(--nm-in-s); border-radius:16px;}
+  .calc-note{color:#6a7280;}
+
+  /* ── 그림은 살짝 파인 자리에 ── */
+  .chart-wrap{
+    border-radius:16px; padding:12px 10px;
+    box-shadow:inset 3px 3px 7px var(--nm-d), inset -3px -3px 7px var(--nm-l);
+  }
+
+  /* ── 표 ── */
+  .mat-table-wrap{border-radius:14px; padding:4px; box-shadow:var(--nm-in-s);}
+  .mat-table th{background:transparent; color:#49525f; border-bottom:2px solid #cfd4de;}
+  .mat-table td{border-bottom:1px solid #dde1e9;}
+  .mat-table tr.hl-row td{background:#dfe6f7;}
+
+  /* ── 버튼 ── */
+  .btn, .acc-btn{
+    background:var(--bg); color:#454e5c; border:0; border-radius:12px; box-shadow:var(--nm-out-s);
+    transition:box-shadow .15s, color .15s;
+  }
+  .btn:hover, .acc-btn:hover{box-shadow:var(--nm-out); color:var(--accent-ink); border-color:transparent;}
+  .btn:active, .acc-btn:active{box-shadow:var(--nm-in-s);}
+  .btn.ghost{background:var(--bg); color:var(--accent-ink);}
+  .btn.danger{background:var(--bg); color:#c0392b;}
+  .dl-btn{
+    background:var(--bg); color:var(--accent-ink); border-radius:14px; box-shadow:var(--nm-out);
+  }
+  .dl-btn:hover{transform:none; box-shadow:var(--nm-out), 0 0 0 1.5px rgba(47,107,255,.25);}
+  .dl-btn:active{box-shadow:var(--nm-in-s);}
+  .mini-del:hover{background:var(--bg); box-shadow:var(--nm-in-xs); color:#c0392b;}
+
+  /* ── 입력 칸은 파인 느낌 ── */
+  .add-row input, textarea.memo, .notice-form input, .notice-form textarea{
+    background:var(--bg); border:0; border-radius:12px; box-shadow:var(--nm-in-s); color:var(--ink);
+  }
+  .add-row input:focus, textarea.memo:focus, .notice-form input:focus, .notice-form textarea:focus{
+    border-color:transparent; box-shadow:var(--nm-in-s), 0 0 0 1.5px rgba(47,107,255,.3);
+  }
+
+  /* ── 알약·배지 ── */
+  .ch-eyebrow, .era-year, .biz-tag, .fact-tag, .am-tag, .ch-badge{
+    box-shadow:var(--nm-out-xs);
+  }
+  .quiz-no{box-shadow:var(--nm-out-xs);}
+  .qa > summary{background:var(--bg); color:var(--accent-ink); box-shadow:var(--nm-out-xs);}
+  .qa > summary:hover{box-shadow:var(--nm-out-s);}
+  .qa[open] > summary{box-shadow:var(--nm-in-xs);}
+  .qa .a{background:var(--bg); border:0; box-shadow:var(--nm-in-s); border-radius:14px;}
+  .qa .pts{border-top:1px dashed #cfd4de;}
+
+  /* ── 구분선 ── */
+  .quiz-item{border-bottom:1px solid #dde1e9;}
+  .atom-list li{border-bottom:1px solid #dde1e9;}
+  .link-list li{border-bottom:1px solid #dde1e9;}
+  .sub-h{border-top:1px solid #dde1e9;}
+  details.acc[open] > summary{border-bottom:0;}
+
+  /* ── 문서 뷰어·영상은 파인 자리에 ── */
+  .pdf-frame{border:0; border-radius:16px; box-shadow:var(--nm-in);}
+  .yt-item iframe{border-radius:14px; box-shadow:var(--nm-out-s);}
+
+  /* ── 레이저 버튼 ── */
+  #laserBtn{
+    background:var(--bg); border:0; color:#454e5c; box-shadow:var(--nm-out);
+  }
+  #laserBtn:hover{transform:none; box-shadow:var(--nm-out), 0 0 0 1.5px rgba(227,73,72,.25);}
+  #laserBtn.on{background:var(--bg); border:0; color:#c0392b; box-shadow:var(--nm-in-s);}
+  #laserBtn.on .dot{background:#e34948; box-shadow:0 0 8px 2px rgba(227,73,72,.45);}
+
+  /* 다크 모드 취향의 사이드바를 원하면 이 블록을 지우면 됩니다 */
+
   @media (max-width:820px){
     body{flex-direction:column; overflow:auto;}
     #sidebar{width:100%; min-width:0; height:auto; max-height:45vh;}
@@ -569,7 +713,7 @@ function bindCustom(p){
 }
 
 /* ───────── 고정 자료: 반도체 발전사 ───────── */
-const VIZ = {ink:"#0b0b0b", sub:"#52514e", muted:"#898781", grid:"#e6e9f0", axis:"#c3c2b7", blue:"#2a78d6", accent:"#2f6bff"};
+const VIZ = {ink:"#252b35", sub:"#4f5765", muted:"#7b8492", grid:"#d9dde6", axis:"#b6bcc9", blue:"#2a78d6", accent:"#2f6bff", surface:"#f1f3f7"};
 
 function logLineChart(cfg){
   const w=820, h=cfg.h||380, p={t:24,r:30,b:40,l:70};
@@ -1542,7 +1686,7 @@ function fieldDiagram(){
     s += `<line x1="${x}" y1="${yT+8}" x2="${x}" y2="${yB-32}" stroke="#93b5e8" stroke-width="1.3" stroke-dasharray="4 4" marker-end="url(#efC)"/>`;
   });
   [235,375,515,655].forEach(x=>{
-    s += `<circle cx="${x}" cy="${yT+22}" r="7" fill="#fff" stroke="${VIZ.sub}" stroke-width="1.2"/>`;
+    s += `<circle cx="${x}" cy="${yT+22}" r="7" fill="${VIZ.surface}" stroke="${VIZ.sub}" stroke-width="1.2"/>`;
     s += `<path d="M${x-4.5} ${yT+17.5} L${x+4.5} ${yT+26.5} M${x+4.5} ${yT+17.5} L${x-4.5} ${yT+26.5}" stroke="${VIZ.sub}" stroke-width="1.2"/>`;
   });
   s += `<text x="435" y="${yT+56}" text-anchor="middle" font-size="13.5" font-weight="800" fill="${VIZ.accent}">에너지 흐름  S = E × H</text>`;
@@ -1723,7 +1867,7 @@ function chipMatrix(){
     cells[ri].forEach((cell,ci)=>{
       const x = X0 + ci*(CW+GAP);
       const empty = !!cell.none;
-      s += `<rect x="${x}" y="${RY[ri]}" width="${CW}" height="${RH}" rx="12" fill="${empty?"#f6f7f9":(cell.hl?"#eef3ff":"#fff")}" stroke="${empty?VIZ.grid:(cell.hl?VIZ.accent:VIZ.grid)}" stroke-width="${cell.hl?1.6:1.2}"/>`;
+      s += `<rect x="${x}" y="${RY[ri]}" width="${CW}" height="${RH}" rx="12" fill="${empty?"#f6f7f9":(cell.hl?"#e3ebfb":VIZ.surface)}" stroke="${empty?VIZ.grid:(cell.hl?VIZ.accent:VIZ.grid)}" stroke-width="${cell.hl?1.6:1.2}"/>`;
       if(empty){
         s += `<text x="${x+CW/2}" y="${RY[ri]+56}" text-anchor="middle" font-size="14" font-weight="800" fill="#9aa3b0">${cell.none}</text>`;
         const words = cell.why.split(" ");
@@ -1749,7 +1893,7 @@ function chipMatrix(){
 function aiSupplyChain(){
   const w=820, h=330;
   const box=(x,y,bw,bh,tag,title,sub,c)=>{
-    let g = `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="12" fill="#fff" stroke="${c}" stroke-width="1.8"/>`;
+    let g = `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="12" fill="${VIZ.surface}" stroke="${c}" stroke-width="1.8"/>`;
     g += `<rect x="${x+12}" y="${y+12}" width="${tag.length*7.6+16}" height="20" rx="10" fill="${c}" opacity=".13"/>`;
     g += `<text x="${x+20}" y="${y+26}" font-size="11" font-weight="800" fill="${c}">${tag}</text>`;
     g += `<text x="${x+12}" y="${y+54}" font-size="14.5" font-weight="800" fill="${VIZ.ink}">${title}</text>`;
@@ -2080,7 +2224,7 @@ function forceLadder(){
 function forceTree(){
   const w=820, h=400;
   const bx=(x,y,bw,bh,t,sub,c,fill)=>{
-    let g=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10" fill="${fill||"#fff"}" stroke="${c}" stroke-width="1.7"/>`;
+    let g=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10" fill="${fill||VIZ.surface}" stroke="${c}" stroke-width="1.7"/>`;
     g+=`<text x="${x+bw/2}" y="${y+(sub?24:bh/2+5)}" text-anchor="middle" font-size="13.5" font-weight="800" fill="${c}">${t}</text>`;
     if(sub) g+=`<text x="${x+bw/2}" y="${y+42}" text-anchor="middle" font-size="11" fill="${VIZ.sub}">${sub}</text>`;
     return g;
@@ -2936,7 +3080,7 @@ function dcAcEyes(){
   s += `<text x="550" y="52" text-anchor="middle" font-size="13.5" font-weight="800" fill="#0a7d57">AC의 눈으로 보면</text>`;
   rows.forEach((r,i)=>{
     const y = 86 + i*56;
-    s += `<rect x="30" y="${y}" width="760" height="48" rx="9" fill="${i%2?"#fbfcfe":"#fff"}" stroke="${VIZ.grid}" stroke-width="1"/>`;
+    s += `<rect x="30" y="${y}" width="760" height="48" rx="9" fill="${i%2?"#e9ecf2":VIZ.surface}" stroke="${VIZ.grid}" stroke-width="1"/>`;
     s += `<text x="46" y="${y+22}" font-size="13" font-weight="800" fill="${VIZ.ink}">${r.t}</text>`;
     s += `<text x="46" y="${y+40}" font-size="11" fill="${VIZ.muted}">${r.why}</text>`;
     s += `<text x="330" y="${y+30}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#b42318">${r.dc}</text>`;
@@ -3237,7 +3381,7 @@ function chargerBlocks(){
   let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="USB 충전기 내부 블록 구성">`;
   blocks.forEach((b,i)=>{
     const x = 20 + i*(bw+gap);
-    s += `<rect x="${x}" y="80" width="${bw}" height="88" rx="11" fill="#fff" stroke="${b.c}" stroke-width="1.8"/>`;
+    s += `<rect x="${x}" y="80" width="${bw}" height="88" rx="11" fill="${VIZ.surface}" stroke="${b.c}" stroke-width="1.8"/>`;
     s += `<text x="${x+bw/2}" y="112" text-anchor="middle" font-size="13" font-weight="800" fill="${b.c}">${b.t}</text>`;
     s += `<text x="${x+bw/2}" y="132" text-anchor="middle" font-size="10.5" fill="${VIZ.sub}">${b.d}</text>`;
     if(b.ch){
@@ -3376,7 +3520,7 @@ function phoneMap(){
   const PH={x:60,y:40,w:200,h:350};
   let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="스마트폰 내부 주요 칩과 배운 챕터의 연결">`;
   s += `<rect x="${PH.x}" y="${PH.y}" width="${PH.w}" height="${PH.h}" rx="22" fill="#f4f5f7" stroke="#4a5462" stroke-width="2.4"/>`;
-  s += `<rect x="${PH.x+12}" y="${PH.y+28}" width="${PH.w-24}" height="${PH.h-56}" rx="10" fill="#fff" stroke="${VIZ.grid}"/>`;
+  s += `<rect x="${PH.x+12}" y="${PH.y+28}" width="${PH.w-24}" height="${PH.h-56}" rx="10" fill="${VIZ.surface}" stroke="${VIZ.grid}"/>`;
   const parts=[
     {t:"AP", d:"두뇌", y:60, c:"#2f6bff"},
     {t:"메모리", d:"DRAM·낸드", y:112, c:"#7c3aed"},
@@ -3386,7 +3530,7 @@ function phoneMap(){
     {t:"배터리 보호", d:"충·방전 관리", y:320, c:"#7b8794"},
   ];
   parts.forEach(p=>{
-    s += `<rect x="${PH.x+24}" y="${p.y}" width="${PH.w-48}" height="40" rx="8" fill="#fff" stroke="${p.c}" stroke-width="1.7"/>`;
+    s += `<rect x="${PH.x+24}" y="${p.y}" width="${PH.w-48}" height="40" rx="8" fill="${VIZ.surface}" stroke="${p.c}" stroke-width="1.7"/>`;
     s += `<text x="${PH.x+PH.w/2}" y="${p.y+18}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${p.c}">${p.t}</text>`;
     s += `<text x="${PH.x+PH.w/2}" y="${p.y+33}" text-anchor="middle" font-size="10" fill="${VIZ.muted}">${p.d}</text>`;
     s += `<line x1="${PH.x+PH.w}" y1="${p.y+20}" x2="330" y2="${p.y+20}" stroke="${p.c}" stroke-width="1.4" stroke-dasharray="4 3"/>`;
@@ -3734,7 +3878,7 @@ function textbookVsHistory(){
 
 /* 1940년, 균열이 난 실리콘 덩어리 */
 function ohlSample(){
-  const w=820, h=340;
+  const w=820, h=376;
   const B={x:250,y:150,w:320,h:92}, seam=B.x+B.w/2;
   let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="균열을 사이에 두고 성질이 반대인 실리콘 덩어리에 빛을 비추자 전압이 나타나는 그림">`;
   /* 손전등 */
@@ -3760,7 +3904,7 @@ function ohlSample(){
   s += `<line x1="${B.x-70}" y1="${B.y+B.h/2}" x2="${B.x-70}" y2="${B.y+B.h+50}" stroke="${VIZ.ink}" stroke-width="2"/>`;
   s += `<line x1="${B.x+B.w+70}" y1="${B.y+B.h/2}" x2="${B.x+B.w+70}" y2="${B.y+B.h+50}" stroke="${VIZ.ink}" stroke-width="2"/>`;
   s += `<line x1="${B.x-70}" y1="${B.y+B.h+50}" x2="${B.x+B.w+70}" y2="${B.y+B.h+50}" stroke="${VIZ.ink}" stroke-width="2"/>`;
-  s += `<circle cx="410" cy="${B.y+B.h+50}" r="26" fill="#fff" stroke="#0f9d6e" stroke-width="2.4"/>`;
+  s += `<circle cx="410" cy="${B.y+B.h+50}" r="26" fill="${VIZ.surface}" stroke="#0f9d6e" stroke-width="2.4"/>`;
   s += `<text x="410" y="${B.y+B.h+55}" text-anchor="middle" font-size="13" font-weight="800" fill="#0a7d57">V</text>`;
   s += `<text x="410" y="${B.y+B.h+92}" text-anchor="middle" font-size="14" font-weight="800" fill="#0a7d57">약 0.5 V</text>`;
   s += `<text x="410" y="${h-10}" text-anchor="middle" font-size="12" fill="${VIZ.muted}">전지도, 전원도 연결하지 않았습니다. 빛을 비췄을 뿐인데 전압이 나타났습니다.</text>`;
