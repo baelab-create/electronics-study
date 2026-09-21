@@ -528,6 +528,25 @@
     #sidebar{width:100%; min-width:0; height:auto; max-height:45vh;}
     #main{height:auto; padding:24px 18px;}
   }
+
+  /* Chapter 1 보충 자료: 기존 테마를 따르고 표만 가로 스크롤 */
+  #main{min-width:0;}
+  .diode-notes{margin:36px 0 70px; line-height:1.8; overflow-wrap:anywhere;}
+  .diode-notes h2{font-size:24px; letter-spacing:-.4px;}
+  .diode-notes h3{font-size:17px; line-height:1.5;}
+  .diode-notes p + p{margin-top:12px;}
+  .diode-notes .dn-lead{color:var(--muted); font-size:14px; margin-top:8px;}
+  .diode-notes .dn-formula{font-size:18px; font-weight:800; margin:14px 0 8px; font-variant-numeric:tabular-nums;}
+  .diode-notes .dn-flow{padding:16px; margin-top:18px; border-radius:12px; box-shadow:var(--nm-in-s); text-align:center; font-weight:800;}
+  .diode-notes .dn-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:20px;}
+  .diode-notes figure{margin:0; padding:14px; border-radius:14px; box-shadow:var(--nm-in-s); min-width:0;}
+  .diode-notes figure svg{display:block; width:100%; height:auto; color:var(--ink);}
+  .diode-notes figcaption{font-size:13px; line-height:1.65; margin-top:10px;}
+  .diode-notes .mat-table-wrap:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
+  .diode-notes .mat-table caption{text-align:left; padding:8px; color:var(--muted);}
+  .diode-notes .mat-table th[scope="row"]{white-space:normal;}
+  @media(max-width:1100px){.diode-notes .dn-grid{grid-template-columns:1fr;}.diode-notes figure svg{max-width:360px; margin:auto;}}
+  @media(max-width:480px){.diode-notes .card{padding:20px 16px;}.diode-notes h2{font-size:22px;}}
 </style>
 </head>
 <body>
@@ -669,7 +688,108 @@ function renderChapter(c){
     <h3>🎯 학습 목표</h3>
     <ul class="obj-list">${c.objs.map(o=>`<li>${o}</li>`).join("")}</ul>
   </div>
-  <iframe class="pdf-frame" src="${c.file}" title="Chapter ${c.n} 미리보기"></iframe>`;
+  <iframe class="pdf-frame" src="${c.file}" title="Chapter ${c.n} 미리보기"></iframe>
+  ${c.n === 1 ? renderDiodeNotes() : ""}`;
+}
+
+
+/* ───────── Chapter 1: 다이오드 저항 보충 설명 ───────── */
+function diodeResistanceFigure(mode){
+  // 같은 비선형 곡선에서 원점–Q, Q의 접선, A–B 할선을 비교한다.
+  const x = v => 36 + v * 220, y = i => 214 - i * 170;
+  const f = v => (Math.exp(4*v)-1)/(Math.exp(4)-1);
+  const q = .72, a = .48, b = .92;
+  const pt = v => `${x(v).toFixed(2)},${y(f(v)).toFixed(2)}`;
+  const curve = Array.from({length:101},(_,j)=>`${j?'L':'M'}${pt(j/100)}`).join(' ');
+  const slope = 4*Math.exp(4*q)/(Math.exp(4)-1);
+  const dot = (v,label) => `<circle cx="${x(v)}" cy="${y(f(v))}" r="4" fill="currentColor"/><text x="${x(v)-20}" y="${y(f(v))-12}">${label}</text>`;
+  const line = mode==='dc'
+    ? `<path d="M36,214 L${pt(q)}" stroke-dasharray="7 4"/>`
+    : mode==='small'
+      ? `<path d="M${x(.48)},${y(f(q)+slope*(.48-q))} L${x(.96)},${y(f(q)+slope*(.96-q))}" stroke-dasharray="7 4"/>`
+      : `<path d="M${pt(a)} L${pt(b)}" stroke-dasharray="7 4"/><path d="M${pt(a)} H${x(b)} V${y(f(b))}" stroke-width="1" stroke-dasharray="2 4"/>`;
+  const name = {dc:'DC: 원점에서 Q까지',small:'Small AC: Q에서의 접선',large:'Large AC: A와 B를 잇는 할선'}[mode];
+  return `<svg viewBox="0 0 300 260" role="img" aria-labelledby="dn-${mode}-title dn-${mode}-desc">
+    <title id="dn-${mode}-title">${name}</title>
+    <desc id="dn-${mode}-desc">가로축 전압, 세로축 전류. 실선은 비선형 I–V 곡선이고 점선은 ${name}이다. 점선의 기울기는 해당 저항의 역수이다. 개념도이며 축척과 수치는 생략했다.</desc>
+    <g fill="none" stroke="currentColor" stroke-width="1.3"><path d="M36,24 V214 H277"/></g>
+    <g font-size="13" fill="currentColor"><text x="8" y="22">I</text><text x="278" y="235">V</text><text x="20" y="233">0</text></g>
+    <path d="${curve}" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <g fill="none" stroke="currentColor" stroke-width="2">${line}</g>
+    <g font-size="14" fill="currentColor">${mode==='large'?dot(a,'A')+dot(b,'B')+`<text x="176" y="222">ΔV</text><text x="244" y="148">ΔI</text>`:dot(q,'Q')}</g>
+  </svg>`;
+}
+
+function renderDiodeNotes(){
+  return `<section class="diode-notes" aria-labelledby="diode-notes-title">
+    <span class="ch-eyebrow">CHAPTER 1 · 더 쉽게 이해하기</span>
+    <h2 id="diode-notes-title" style="margin-top:14px">추가 설명 자료</h2>
+    <p class="dn-lead">다이오드의 DC · AC/dynamic · average AC resistance — 한 점의 비율, 한 점 주변의 변화, 두 점 사이의 변화</p>
+
+    <div class="card">
+      <h3>먼저, 다이오드는 고정 저항이 아닙니다</h3>
+      <p>고정 저항은 전압을 2배로 올리면 전류도 2배가 되는 직선 I–V 특성을 가집니다. 다이오드의 I–V 특성은 <b>곡선</b>이므로, 전압과 전류의 비율이나 변화에 대한 민감도가 동작 위치에 따라 달라집니다.</p>
+      <div class="quote"><b>“한 방향으로만 흐르게 하는 소자이면서, forward 방향에서도 전압에 따라 얼마나 잘 흐르는지가 크게 달라지는 비선형 소자”</b>라고 생각해 보세요.</div>
+      <p class="calc-note">‘한 방향’은 기본 동작을 설명하는 표현입니다. 실제로는 역방향 누설전류와 항복도 있습니다.</p>
+      <p>순방향 전압을 높이면 접합의 장벽이 낮아져 운반자 주입이 빠르게 증가합니다. 그래서 전압이 조금 늘어도 전류는 크게 늘 수 있습니다. 다이오드가 스스로 전류를 정하는 것은 아니며, <b>실제 전류는 전원과 직렬 저항 등 회로 전체</b>가 함께 결정합니다.</p>
+      <div class="dn-flow">작은 ΔV → 큰 ΔI → 작은 dynamic resistance</div>
+    </div>
+
+    <div class="card">
+      <h3>01 · DC resistance: 지금 전압을 지금 전류로 나누기</h3>
+      <p>DC 바이어스로 정해진 동작점을 <b>Q-point</b>라고 합니다. DC 저항은 그 <b>한 점의 전압과 전류의 비율</b>입니다.</p>
+      <p class="dn-formula">R<sub>D</sub> = V<sub>D</sub> / I<sub>D</sub></p>
+      <div class="calc">Q = (0.70 V, 2 mA)라면<br><b>R<sub>D</sub> = 0.70 V / 0.002 A = 350 Ω</b></div>
+      <p class="calc-note">350 Ω은 이 Q점의 DC 비율입니다. 전압이 조금 변할 때에도 350 Ω짜리 저항처럼 반응한다는 뜻은 아닙니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>02 · AC / dynamic resistance: Q 근처에서 조금 흔들기</h3>
+      <p>DC 전압에 작은 AC 신호를 더하면 동작점이 Q 주변을 오갑니다. 곡선의 아주 짧은 구간은 직선처럼 보이므로 <b>Q점의 접선</b>으로 근사합니다. 소신호 해석에서는 이 Q점에서 구한 r<sub>d</sub>를 일정하게 사용합니다.</p>
+      <p class="dn-formula">r<sub>d</sub> = (dV/dI)<sub>Q</sub> ≈ ΔV<sub>d</sub> / ΔI<sub>d</sub></p>
+      <div class="calc"><b>축을 먼저 확인하세요.</b> 가로축이 V, 세로축이 I인 I–V 그래프의 접선 기울기는 dI/dV = 1/r<sub>d</sub>입니다.<br><b>저항은 그 기울기의 역수</b>입니다. 그래프가 가파를수록 전류 변화가 커지고, dynamic resistance는 작아집니다.</div>
+      <p class="dn-formula">r<sub>d</sub> ≈ nV<sub>T</sub> / I<sub>D</sub> ≈ 26 mV / I<sub>D</sub> (n ≈ 1)</p>
+      <p>같은 온도와 n에서 전류가 큰 Q점일수록 곡선이 가파릅니다. <b>같은 작은 전압 변화에 더 큰 전류 변화</b>가 생기므로 r<sub>d</sub>가 작아집니다.</p>
+      <div class="calc">I<sub>D</sub> = 1 mA → r<sub>d</sub> ≈ <b>26 Ω</b><br>I<sub>D</sub> = 2 mA → r<sub>d</sub> ≈ <b>13 Ω</b><br>I<sub>D</sub> = 10 mA → r<sub>d</sub> ≈ <b>2.6 Ω</b><br><br>2 mA의 Q점에서 ΔV<sub>d</sub> = +1 mV이면<br>ΔI<sub>d</sub> ≈ 1 mV / 13 Ω ≈ <b>+0.077 mA</b><br>즉, 전류는 약 2.077 mA가 됩니다. −1 mV이면 약 1.923 mA입니다.</div>
+      <p class="calc-note">26 mV는 실온(약 300 K)의 열전압 V<sub>T</sub>입니다. n은 이상계수이며, 26 mV/I<sub>D</sub>는 n ≈ 1, 충분한 순방향 바이어스, 접합의 지수 특성이 지배적인 영역에서의 근사입니다. 실제 소자의 직렬 저항·온도·주파수에 따라 달라집니다. 소신호 근사는 |ΔV<sub>d</sub>| ≪ nV<sub>T</sub>일 때 유효합니다. mV를 mA로 나누면 Ω이 됩니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>03 · Average AC resistance: 큰 변화의 양 끝점 잇기</h3>
+      <p>신호가 커서 곡선의 넓은 범위를 움직이면 하나의 접선으로 전체를 설명하기 어렵습니다. 이때 <b>범위의 양 끝점 A, B를 잇는 할선</b>으로 그 구간의 평균적인 변화 비율을 구합니다.</p>
+      <p class="dn-formula">r<sub>av</sub> = (ΔV<sub>d</sub>/ΔI<sub>d</sub>)<sub>point-to-point</sub><br>= (V<sub>B</sub> − V<sub>A</sub>) / (I<sub>B</sub> − I<sub>A</sub>)</p>
+      <div class="calc">별도의 예시 곡선에서 A = (0.65 V, 1 mA), B = (0.75 V, 5 mA)라면<br><b>r<sub>av</sub> = 0.10 V / 0.004 A = 25 Ω</b></div>
+      <p class="calc-note">이 두 점은 계산 연습용 예시이며 앞의 n = 1 모델과 같은 곡선을 뜻하지 않습니다. 25 Ω은 양 끝점 사이의 평균 변화 비율로, 순간순간의 저항이나 시간 평균 저항도, 두 DC 저항의 산술평균도 아닙니다. 큰 신호의 정확한 파형은 비선형 I–V 특성으로 구해야 합니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>같은 곡선, 서로 다른 세 가지 직선</h3>
+      <p class="dn-lead">실선: 다이오드 I–V 곡선 · 점선: 비교하는 직선 (축척을 생략한 개념도)</p>
+      <div class="dn-grid">
+        <figure>${diodeResistanceFigure('dc')}<figcaption><b>DC · 원점 → Q</b><br>점선 기울기 = I<sub>D</sub>/V<sub>D</sub><br>그 역수가 R<sub>D</sub></figcaption></figure>
+        <figure>${diodeResistanceFigure('small')}<figcaption><b>Small AC · Q의 접선</b><br>점선 기울기 = (dI/dV)<sub>Q</sub><br>그 역수가 r<sub>d</sub></figcaption></figure>
+        <figure>${diodeResistanceFigure('large')}<figcaption><b>Large AC · A → B 할선</b><br>점선 기울기 = ΔI/ΔV<br>그 역수가 r<sub>av</sub></figcaption></figure>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>한눈에 비교하기</h3>
+      <div class="mat-table-wrap" role="region" aria-label="DC 및 AC 저항 비교표, 좁은 화면에서는 좌우로 스크롤" tabindex="0">
+        <table class="mat-table">
+          <caption>DC / Small AC / Large AC 비교 · 좁은 화면에서는 표를 좌우로 밀어 보세요.</caption>
+          <thead><tr><th scope="col">구분</th><th scope="col">무엇을 묻나요?</th><th scope="col">계산 / 그래프</th><th scope="col">숫자 예시</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">DC resistance</th><td>지금 전압과 전류의 비율은?</td><td>V<sub>D</sub>/I<sub>D</sub><br>원점–Q 직선 기울기의 역수</td><td>0.70 V / 2 mA<br><b>350 Ω</b></td></tr>
+            <tr><th scope="row">Small AC<br>dynamic resistance</th><td>Q 근처에서 조금 바뀌면?</td><td>(dV/dI)<sub>Q</sub> ≈ ΔV<sub>d</sub>/ΔI<sub>d</sub><br>Q의 접선 기울기의 역수</td><td>26 mV / 2 mA<br><b>13 Ω</b> (n = 1, 실온)</td></tr>
+            <tr><th scope="row">Large AC<br>average AC resistance</th><td>A에서 B까지 크게 바뀌면?</td><td>(V<sub>B</sub>−V<sub>A</sub>)/(I<sub>B</sub>−I<sub>A</sub>)<br>A–B 할선 기울기의 역수</td><td>100 mV / 4 mA<br><b>25 Ω</b> (별도 예시)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="quiz-item"><p><b>스스로 확인:</b> 같은 Q점에서 DC 저항이 350 Ω인데 dynamic resistance가 13 Ω이어도 모순이 없을까요?</p>
+        <details class="qa"><summary>해설 보기</summary><div class="a">모순이 없습니다. 350 Ω은 <b>현재 값의 비율 V/I</b>이고, 13 Ω은 <b>작은 변화의 비율 ΔV/ΔI</b>입니다. 비선형 곡선에서는 원점–Q 직선과 Q의 접선 기울기가 다르기 때문입니다.</div></details>
+      </div>
+    </div>
+  </section>`;
 }
 
 /* ───────── 커스텀 페이지 뷰 ───────── */
