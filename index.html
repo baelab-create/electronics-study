@@ -1519,14 +1519,14 @@ const QUIZ_LONG = [
 ];
 
 /* .card / .callout 을 아코디언으로 변환 (수업 중 접었다 펴기) */
-function setupAccordions(view){
+function setupAccordions(view, opts){
   const heads = view.querySelectorAll(".card > h3, .callout > h3");
   if(!heads.length) return;
   heads.forEach(h3=>{
     const box = h3.parentElement;
     const d = document.createElement("details");
     d.className = box.className + " acc";
-    d.open = true;
+    d.open = !(opts && opts.startClosed);
     const sm = document.createElement("summary");
     sm.innerHTML = h3.innerHTML;
     h3.remove();
@@ -4233,6 +4233,8 @@ function render(){
   }else if(current.type==="chapter"){
     const c = CHAPTERS.find(x=>x.n===current.id) || CHAPTERS[0];
     view.innerHTML = renderChapter(c);
+    const dn = view.querySelector(".diode-notes");
+    if(dn) setupAccordions(dn, {startClosed:true});
   }else{
     const p = customPages.find(x=>x.id===current.id);
     if(!p){ current={type:"chapter",id:1}; return render(); }
