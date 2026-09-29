@@ -31,7 +31,7 @@
 </style>
 </head>
 <body>
-<header class="topbar"><div class="topinner"><div class="brand"><span>BAE LAB</span> ELECTRONICS / VISUAL NOTES</div><div class="tools"><button id="fontToggle" aria-pressed="false">글자 크게</button><button id="detailToggle">모두 펼치기</button><button id="printButton">인쇄 / PDF</button></div></div><div class="progress" aria-hidden="true"><span id="readProgress"></span></div></header>
+<header class="topbar"><div class="topinner"><div class="brand"><span>BAE LAB</span> ELECTRONICS / VISUAL NOTES</div><div class="tools"><button id="fontToggle" aria-pressed="false">글자 크게</button><button id="detailToggle">모두 펼치기</button><button id="closeToggle">모두 닫기</button><button id="printButton">인쇄 / PDF</button></div></div><div class="progress" aria-hidden="true"><span id="readProgress"></span></div></header>
 <noscript><div class="noscript">설명과 표는 그대로 읽을 수 있습니다. 조작형 그림과 계산기를 사용하려면 이 파일을 JavaScript가 허용된 브라우저에서 열어 주세요.</div></noscript>
 <div class="layout">
 <aside class="sidebar"><div class="navtitle">LEARNING PATH</div><nav aria-label="학습 목차"><a href="#start"><span>00</span>전체 지도</a><a href="#history"><span>H</span>다이오드의 발견 이야기</a><a href="#characters"><span>01</span>전자·정공·이온</a><a href="#junction"><span>02</span>PN 접합과 바이어스</a><a href="#compare"><span>03</span>세 다이오드 비교</a><a href="#breakdown"><span>04</span>항복은 왜 생길까</a><a href="#mechanisms"><span>05</span>터널링과 애벌랜치</a><a href="#design"><span>06</span>항복과 영구 손상</a><a href="#led"><span>07</span>LED와 빛의 색</a><a href="#circuits"><span>08</span>전류·전력 실험</a><a href="#misconceptions"><span>09</span>오해 바로잡기</a><a href="#sources"><span>10</span>참고 자료</a></nav><p class="sidehint">원리부터 회로까지<br>쉬운 비유 + 전공 설명<br><br>모든 그림과 기능은<br>이 파일 안에 포함됩니다.<br>출처 링크 열기 외에는<br>인터넷 연결이 필요 없습니다.</p></aside>
@@ -212,7 +212,7 @@ $('fontToggle').addEventListener('click',()=>{const on=document.body.classList.t
    updateStatus();refresh();
  }
  document.getElementById('expandAll').addEventListener('click',()=>setMode('all'));
- document.getElementById('detailToggle').addEventListener('click',()=>setMode('all'));
+ document.getElementById('detailToggle').addEventListener('click',()=>setMode('all'));  document.getElementById('closeToggle').addEventListener('click',()=>setMode('closed'));
  document.getElementById('collapseAll').addEventListener('click',()=>setMode('closed'));
  document.getElementById('lectureMode').addEventListener('click',()=>setMode('lecture'));
  all.forEach(d=>d.addEventListener('toggle',()=>{updateStatus();if(!printing)refresh();}));
