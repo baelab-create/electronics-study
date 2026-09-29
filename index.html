@@ -600,6 +600,7 @@ const CHAPTERS = [
 /* 고정 자료 페이지 (모든 학생에게 보임) */
 const MATERIALS = [
   {id:"yt-library", title:"유튜브 자료실", sub:"수업 참고 영상 모음", icon:"▶️", ch:"전 챕터"},
+  {id:"diode-inside", title:"다이오드의 안쪽", sub:"일반 PN · 제너 · LED 강의문", icon:"🧲", ch:"Ch.1·2"},
   {id:"semi-history", title:"반도체 발전사", sub:"진공관에서 2nm까지", icon:"📘", ch:"도입"},
   {id:"discovery", title:"다이오드는 발명되지 않았다", sub:"실리콘 덩어리에 빛을 비췄더니", icon:"🔦", ch:"Ch.1"},
   {id:"forces", title:"자연계의 네 가지 힘", sub:"그리고 전자공학의 주인공", icon:"🌌", ch:"Ch.1"},
@@ -987,6 +988,7 @@ const NODE_TABLE = [
 
 function renderMaterial(m){
   if(m.id === "yt-library") return renderYtLibrary();
+  if(m.id === "diode-inside") return renderDiodeInside();
   if(m.id === "electricity-flow") return renderElectricityFlow();
   if(m.id === "atom-model") return renderAtomModel();
   if(m.id === "chip-industry") return renderChipIndustry();
@@ -1002,6 +1004,17 @@ function renderMaterial(m){
   if(m.id === "datasheet") return renderDatasheet();
   if(m.id === "simulator") return renderSimulator();
   return renderSemiHistory();
+}
+
+/* ───────── 고정 자료: 다이오드의 안쪽 (독립 강의 페이지) ───────── */
+function renderDiodeInside(){
+  return `
+  <span class="ch-eyebrow">추가 자료</span>
+  <h2 class="ch-title">🧲 다이오드의 안쪽</h2>
+  <p class="ch-sub">전자·정공과 고정 이온부터 일반 PN · 제너 · LED와 항복까지 — 그림·조작 중심의 아코디언 강의문</p>
+  <p class="mat-section-note">아래에 바로 표시되지만, 독립된 강의 페이지라 <b>새 창 전체 화면</b>으로 보는 것이 가장 편합니다. 인쇄/PDF 버튼도 페이지 안에 있습니다.</p>
+  <p style="margin-top:14px;"><a class="btn" href="pages/diode-inside.html" target="_blank" rel="noopener" style="text-decoration:none; display:inline-block;">↗ 새 창에서 전체 화면으로 열기</a></p>
+  <iframe class="pdf-frame" src="pages/diode-inside.html" title="다이오드의 안쪽 — 강의 페이지" style="height:78vh; margin-top:18px;" loading="lazy"></iframe>`;
 }
 
 /* ───────── 고정 자료: 유튜브 자료실 ───────── */
