@@ -690,7 +690,8 @@ function renderChapter(c){
     <ul class="obj-list">${c.objs.map(o=>`<li>${o}</li>`).join("")}</ul>
   </div>
   <iframe class="pdf-frame" src="${c.file}" title="Chapter ${c.n} 미리보기"></iframe>
-  ${c.n === 1 ? renderDiodeNotes() : ""}`;
+  ${c.n === 1 ? renderDiodeNotes() : ""}
+  ${c.n === 2 ? renderLoadLineNotes() : ""}`;
 }
 
 
@@ -719,6 +720,248 @@ function diodeResistanceFigure(mode){
     <g fill="none" stroke="currentColor" stroke-width="2">${line}</g>
     <g font-size="14" fill="currentColor">${mode==='large'?dot(a,'A')+dot(b,'B')+`<text x="176" y="222">ΔV</text><text x="244" y="148">ΔI</text>`:dot(q,'Q')}</g>
   </svg>`;
+}
+
+
+/* ───────── CHAPTER 2 보조 자료: 부하선 해석 ───────── */
+
+/* 용돈 1,000원을 둘이 나눠 쓴다 — 합이 늘 같다는 것이 직선의 정체 */
+function llMoney(){
+  const w=820, h=306;
+  const pouch=(x,t,sub,c)=>{
+    let g=`<rect x="${x}" y="118" width="210" height="96" rx="16" fill="${VIZ.surface}" stroke="${c}" stroke-width="1.8"/>`;
+    g+=`<text x="${x+105}" y="152" text-anchor="middle" font-size="14" font-weight="800" fill="${c}">${t}</text>`;
+    g+=`<text x="${x+105}" y="178" text-anchor="middle" font-size="12" fill="${VIZ.sub}">${sub}</text>`;
+    return g;
+  };
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="전원 전압을 다이오드와 저항이 나눠 갖는다는 비유">`;
+  s+=`<text x="30" y="34" font-size="13.5" font-weight="800" fill="${VIZ.ink}">전원이 준 전압을 둘이 나눠 씁니다</text>`;
+  s+=`<rect x="40" y="60" width="240" height="46" rx="14" fill="${VIZ.accent}" opacity=".10"/>`;
+  s+=`<text x="160" y="89" text-anchor="middle" font-size="15" font-weight="800" fill="${VIZ.accent}">전원 10 V  (용돈 1,000원)</text>`;
+  s+=`<path d="M160 106 L160 118" stroke="${VIZ.axis}" stroke-width="2"/>`;
+  s+=`<path d="M160 118 L160 112 M100 112 L560 112" stroke="${VIZ.axis}" stroke-width="2"/>`;
+  s+=`<path d="M100 112 L100 118" stroke="${VIZ.axis}" stroke-width="2"/>`;
+  s+=`<path d="M560 112 L560 118" stroke="${VIZ.axis}" stroke-width="2"/>`;
+  s+=pouch(0+40,"다이오드 몫","V(D)","#e8552d").replace('x="40"','x="40"');
+  s+=pouch(455,"저항 몫","V(R) = 10 − V(D)",VIZ.blue);
+  s+=`<text x="357" y="172" text-anchor="middle" font-size="26" font-weight="800" fill="${VIZ.muted}">＋</text>`;
+  s+=`<rect x="250" y="232" width="320" height="40" rx="12" fill="${VIZ.surface}" stroke="${VIZ.axis}" stroke-width="1.4"/>`;
+  s+=`<text x="410" y="258" text-anchor="middle" font-size="14" font-weight="800" fill="${VIZ.ink}">둘을 더하면 언제나 10 V</text>`;
+  s+=`<text x="30" y="${h-12}" font-size="11.5" fill="${VIZ.muted}">한쪽이 많이 가져가면 다른 쪽은 그만큼 줄어듭니다. 이 '합이 일정하다'가 곧 직선입니다.</text>`;
+  return s+"</svg>";
+}
+
+/* 두 끝점만 찍으면 부하선은 다 그린 것 */
+function llLine(){
+  const w=820, h=330, P={x:110,y:50,w:520,h:210};
+  const E=10, R=1000, Imax=0.011, Vmax=11;
+  const X=v=>P.x+v/Vmax*P.w, Y=i=>P.y+P.h-i/Imax*P.h;
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="두 끝점을 찍어 부하선을 긋는 방법">`;
+  s+=`<line x1="${P.x}" y1="${P.y-8}" x2="${P.x}" y2="${P.y+P.h}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  s+=`<line x1="${P.x}" y1="${P.y+P.h}" x2="${P.x+P.w+16}" y2="${P.y+P.h}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  s+=`<text x="${P.x-12}" y="${P.y}" text-anchor="end" font-size="12" font-weight="700" fill="${VIZ.sub}">전류 I</text>`;
+  s+=`<text x="${P.x+P.w+12}" y="${P.y+P.h+24}" text-anchor="end" font-size="12" font-weight="700" fill="${VIZ.sub}">다이오드 전압 V(D) →</text>`;
+  s+=`<line x1="${X(0)}" y1="${Y(E/R)}" x2="${X(E)}" y2="${Y(0)}" stroke="${VIZ.accent}" stroke-width="3"/>`;
+  /* 끝점 1 */
+  s+=`<circle cx="${X(0)}" cy="${Y(E/R)}" r="7" fill="${VIZ.accent}" stroke="#fff" stroke-width="2"/>`;
+  s+=`<text x="${X(0)+14}" y="${Y(E/R)-16}" font-size="12.5" font-weight="800" fill="${VIZ.accent}">① 다이오드가 0 V를 가져가면</text>`;
+  s+=`<text x="${X(0)+14}" y="${Y(E/R)+2}" font-size="12" fill="${VIZ.sub}">저항이 10 V를 다 쓴다 → I = 10 V / 1 kΩ = 10 mA</text>`;
+  /* 끝점 2 */
+  s+=`<circle cx="${X(E)}" cy="${Y(0)}" r="7" fill="${VIZ.accent}" stroke="#fff" stroke-width="2"/>`;
+  s+=`<text x="${X(E)-10}" y="${Y(0)-34}" text-anchor="end" font-size="12.5" font-weight="800" fill="${VIZ.accent}">② 전류가 0이면</text>`;
+  s+=`<text x="${X(E)-10}" y="${Y(0)-16}" text-anchor="end" font-size="12" fill="${VIZ.sub}">저항에 걸리는 전압도 0 → V(D) = 10 V</text>`;
+  [[0,"0"],[2,"2"],[4,"4"],[6,"6"],[8,"8"],[10,"10"]].forEach(([v,t])=>{
+    s+=`<text x="${X(v)}" y="${P.y+P.h+18}" text-anchor="middle" font-size="11" fill="${VIZ.muted}">${t}</text>`;
+  });
+  [[0.002,"2"],[0.004,"4"],[0.006,"6"],[0.008,"8"],[0.010,"10"]].forEach(([i,t])=>{
+    s+=`<text x="${P.x-8}" y="${Y(i)+4}" text-anchor="end" font-size="11" fill="${VIZ.muted}">${t}</text>`;
+  });
+  s+=`<text x="410" y="${h-8}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${VIZ.ink}">③ 두 점을 자로 이으면 끝 — 부하선은 이게 전부입니다.</text>`;
+  return s+"</svg>";
+}
+
+/* 밸브와 호스 — 서로 다른 두 사정이 동시에 만족되는 지점 */
+function llValve(){
+  const w=820, h=300;
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="물통과 가는 호스와 특이한 밸브로 설명한 동작점 비유">`;
+  /* 물통 */
+  s+=`<rect x="40" y="60" width="110" height="120" rx="10" fill="#cfe0f7" stroke="${VIZ.blue}" stroke-width="2"/>`;
+  s+=`<text x="95" y="128" text-anchor="middle" font-size="13" font-weight="800" fill="#1c49c2">물통</text>`;
+  s+=`<text x="95" y="200" text-anchor="middle" font-size="11.5" fill="${VIZ.sub}">전원</text>`;
+  /* 호스 */
+  s+=`<rect x="150" y="108" width="210" height="24" fill="#dfe3ea" stroke="${VIZ.axis}" stroke-width="1.6"/>`;
+  s+=`<text x="255" y="156" text-anchor="middle" font-size="13" font-weight="800" fill="${VIZ.sub}">가는 호스</text>`;
+  s+=`<text x="255" y="174" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">저항</text>`;
+  /* 밸브 */
+  s+=`<circle cx="410" cy="120" r="34" fill="#f6d9d2" stroke="#e8552d" stroke-width="2"/>`;
+  s+=`<text x="410" y="125" text-anchor="middle" font-size="13" font-weight="800" fill="#b42318">밸브</text>`;
+  s+=`<text x="410" y="174" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">다이오드</text>`;
+  s+=`<rect x="444" y="108" width="80" height="24" fill="#dfe3ea" stroke="${VIZ.axis}" stroke-width="1.6"/>`;
+  /* 말풍선 둘 */
+  const bubble=(x,y,bw,bh,c,fill,t1,t2)=>{
+    let g=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="14" fill="${fill}" stroke="${c}" stroke-width="1.7"/>`;
+    g+=`<text x="${x+16}" y="${y+28}" font-size="12.5" font-weight="800" fill="${c}">${t1}</text>`;
+    g+=`<text x="${x+16}" y="${y+50}" font-size="12" fill="${VIZ.sub}">${t2}</text>`;
+    return g;
+  };
+  s+=bubble(548,56,244,74,"#b42318","#fdeceb","밸브의 사정","압력이 어느 정도 돼야 열린다");
+  s+=bubble(548,150,244,74,VIZ.blue,"#e8eef9","호스의 사정","가늘수록 물이 적게 흐른다");
+  s+=`<rect x="150" y="238" width="520" height="44" rx="14" fill="${VIZ.surface}" stroke="#0f9d6e" stroke-width="1.8"/>`;
+  s+=`<text x="410" y="266" text-anchor="middle" font-size="14" font-weight="800" fill="#0a7d57">실제로 흐르는 물의 양은 두 사정을 동시에 만족하는 딱 한 가지</text>`;
+  s+=`<text x="30" y="34" font-size="13.5" font-weight="800" fill="${VIZ.ink}">물이 얼마나 흐를지는 누가 정할까요?</text>`;
+  return s+"</svg>";
+}
+
+/* 특성곡선과 부하선의 교점에서 무엇을 읽는가 */
+function llMeet(){
+  const w=820, h=350, P={x:110,y:50,w:500,h:220};
+  const VT=0.02585, Is=1e-12, E=10, R=1000;
+  const Imax=0.011, Vmax=11;
+  const X=v=>P.x+v/Vmax*P.w, Y=i=>P.y+P.h-i/Imax*P.h;
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="다이오드 특성곡선과 부하선의 교점에서 동작점을 읽는 그림">`;
+  s+=`<line x1="${P.x}" y1="${P.y-8}" x2="${P.x}" y2="${P.y+P.h}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  s+=`<line x1="${P.x}" y1="${P.y+P.h}" x2="${P.x+P.w+14}" y2="${P.y+P.h}" stroke="${VIZ.axis}" stroke-width="1.5"/>`;
+  let d="";
+  for(let k=0;k<=320;k++){ const v=Vmax*k/320, ii=Is*(Math.exp(v/VT)-1); if(ii>Imax) break; d+=(d?"L":"M")+X(v).toFixed(1)+" "+Y(ii).toFixed(1); }
+  s+=`<path d="${d}" fill="none" stroke="${VIZ.ink}" stroke-width="2.8"/>`;
+  s+=`<text x="${X(1.35)}" y="${Y(0.0104)}" font-size="12.5" font-weight="800" fill="${VIZ.ink}">다이오드의 사정</text>`;
+  s+=`<line x1="${X(0)}" y1="${Y(E/R)}" x2="${X(E)}" y2="${Y(0)}" stroke="${VIZ.accent}" stroke-width="2.8"/>`;
+  s+=`<text x="${X(5.4)}" y="${Y(0.0053)-10}" font-size="12.5" font-weight="800" fill="${VIZ.accent}">회로의 사정 (부하선)</text>`;
+  /* 교점 */
+  let vq=0.7;
+  for(let k=0;k<90;k++){ const f=Is*(Math.exp(vq/VT)-1)-(E-vq)/R; const df=Is/VT*Math.exp(vq/VT)+1/R; vq-=f/df; }
+  const iq=(E-vq)/R;
+  s+=`<line x1="${X(vq)}" y1="${Y(iq)}" x2="${X(vq)}" y2="${P.y+P.h}" stroke="#0f9d6e" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  s+=`<line x1="${P.x}" y1="${Y(iq)}" x2="${X(vq)}" y2="${Y(iq)}" stroke="#0f9d6e" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  s+=`<circle cx="${X(vq)}" cy="${Y(iq)}" r="8" fill="#0f9d6e" stroke="#fff" stroke-width="2.4"/>`;
+  s+=`<text x="${X(vq)+16}" y="${Y(iq)-6}" font-size="15" font-weight="800" fill="#0a7d57">Q</text>`;
+  s+=`<text x="${X(vq)}" y="${P.y+P.h+20}" text-anchor="middle" font-size="12" font-weight="800" fill="#0a7d57">약 0.7 V</text>`;
+  s+=`<text x="${P.x-8}" y="${Y(iq)+4}" text-anchor="end" font-size="12" font-weight="800" fill="#0a7d57">약 9.3 mA</text>`;
+  /* 읽어내는 값 */
+  const row=(y,t,v)=>`<text x="648" y="${y}" font-size="12.5" fill="${VIZ.sub}">${t}</text><text x="800" y="${y}" text-anchor="end" font-size="13" font-weight="800" fill="${VIZ.ink}">${v}</text>`;
+  s+=`<text x="648" y="96" font-size="13" font-weight="800" fill="${VIZ.ink}">교점에서 읽는 것</text>`;
+  s+=row(126,"다이오드 전압","0.7 V");
+  s+=row(154,"회로 전류","9.3 mA");
+  s+=row(182,"저항 전압","9.3 V");
+  s+=`<text x="648" y="214" font-size="11.5" fill="${VIZ.muted}">저항 전압은</text>`;
+  s+=`<text x="648" y="232" font-size="11.5" fill="${VIZ.muted}">10 − 0.7 로 바로 나옵니다</text>`;
+  s+=`<text x="410" y="${h-8}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${VIZ.ink}">두 조건을 동시에 만족하는 점은 교점 하나뿐입니다.</text>`;
+  return s+"</svg>";
+}
+
+const LL_FAQ = [
+  {q:"부하선은 다이오드의 성질을 그린 선인가요?",
+   a:"아닙니다. 부하선은 <b>다이오드 바깥의 회로</b>가 만든 선입니다. 전원과 저항만 있으면 그을 수 있고, 안에 다이오드가 들어가든 트랜지스터가 들어가든 선은 똑같습니다.<br>소자의 성질을 그린 쪽은 <b>곡선</b>입니다."},
+  {q:"왜 하필 직선인가요?",
+   a:"전원이 준 전압을 소자와 저항이 <b>나눠 쓰는데 합이 늘 같기</b> 때문입니다. 한쪽이 많이 가져가면 다른 쪽이 그만큼 줄고, 저항이 가져간 몫에 비례해 전류가 정해집니다. 이 관계는 1차식이라 그래프가 직선이 됩니다."},
+  {q:"그냥 식을 세워서 풀면 안 되나요?",
+   a:"다이오드의 식에는 지수함수가 들어 있어서 손으로 깔끔하게 풀리지 않습니다. 반복 계산을 해야 하죠.<br>부하선은 <b>자 하나로 교점을 찍어</b> 답을 줍니다. 그리고 더 중요한 것은, 저항을 바꾸면 동작점이 어디로 움직이는지가 <b>눈에 보인다</b>는 점입니다."},
+  {q:"저항을 크게 하면 어떻게 되나요?",
+   a:"세로축 끝점(E/R)이 내려가므로 부하선이 <b>더 눕습니다.</b> 가로축 끝점은 여전히 E라 오른쪽은 고정이고 왼쪽만 내려옵니다.<br>그러면 교점도 아래로 내려가 <b>전류가 줄어듭니다.</b> 전원을 바꾸면 선이 통째로 평행 이동합니다."},
+  {q:"그럼 0.7 V로 놓고 푸는 방법은 뭔가요?",
+   a:"부하선 그림의 <b>지름길</b>입니다. 다이오드 곡선이 0.7 V 근처에서 거의 수직으로 서기 때문에, 교점의 가로 위치가 거의 변하지 않습니다.<br>그래서 V(D)를 0.7 V로 고정해 놓고 전류만 계산해도 답이 크게 틀리지 않습니다. 근사가 통하는 이유를 그림이 설명해 주는 셈입니다."},
+  {q:"4장에서도 부하선을 쓴다던데 같은 건가요?",
+   a:"같습니다. 달라지는 것은 <b>곡선이 하나가 아니라 여러 개</b>라는 점뿐입니다. 트랜지스터는 베이스 전류마다 출력 특성곡선이 하나씩 있고, 부하선은 여전히 회로에서 나온 직선 하나입니다.<br>4장의 바이어싱은 결국 <b>그 선 위 어디에 Q를 놓을 것인가</b>를 정하는 일입니다."},
+];
+
+function renderLoadLineNotes(){
+  return `<section class="diode-notes ch-notes" aria-labelledby="ll-notes-title">
+    <span class="ch-eyebrow">CHAPTER 2 · 더 쉽게 이해하기</span>
+    <h2 id="ll-notes-title" style="margin-top:14px">부하선 해석 (Load-Line Analysis)</h2>
+    <p class="dn-lead">소자의 사정과 회로의 사정이 만나는 단 한 점을 찾는 방법</p>
+
+    <div class="card">
+      <h3>한 줄로 말하면</h3>
+      <div class="quote"><b>“소자가 할 수 있는 것”과 “회로가 허락하는 것”을 한 그래프에 겹쳐 그려, 둘이 만나는 점을 답으로 읽는 방법.</b></div>
+      <p>회로에 다이오드 하나와 저항 하나가 있다고 해봅시다. 다이오드에 몇 V가 걸리고 전류가 몇 mA 흐를까요?
+      이 질문에는 답이 <b>하나뿐</b>인데, 그 하나를 찾는 가장 빠른 방법이 부하선 해석입니다.</p>
+      <div class="dn-flow">소자의 곡선 + 회로의 직선 → 교점 = 동작점(Q점)</div>
+    </div>
+
+    <div class="card">
+      <h3>01 · 왜 직선인가 — 용돈 나눠 쓰기</h3>
+      <p>전원이 10 V를 줬습니다. 이 10 V를 <b>다이오드와 저항이 나눠 씁니다.</b> 그런데 아무리 나눠도 둘을 더하면 항상 10 V입니다.</p>
+      <div class="chart-wrap">${llMoney()}</div>
+      <p>엄마가 1,000원을 주면서 “과자랑 음료수 사 먹어”라고 했다고 해봅시다. 과자에 700원을 쓰면 음료수에는 300원밖에 못 씁니다.
+      과자에 많이 쓸수록 음료수에 쓸 돈은 <b>정확히 그만큼</b> 줄어듭니다.</p>
+      <p>회로도 똑같습니다. 다이오드가 전압을 많이 가져가면 저항 몫이 줄고, 저항 몫이 줄면 <b>전류도 줄어듭니다.</b>
+      이 “한쪽이 늘면 다른 쪽이 그만큼 준다”는 관계가 바로 <b>직선</b>입니다.</p>
+      <p class="dn-formula">10 V = V<sub>D</sub> + I × 1 kΩ</p>
+      <p class="calc-note">이 식에는 다이오드가 어떤 소자인지에 대한 정보가 하나도 없습니다. 그래서 안에 무엇을 넣든 부하선은 늘 직선입니다.
+      곡선인 쪽은 언제나 소자의 특성곡선입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>02 · 그리는 법 — 점 두 개면 끝</h3>
+      <p>직선이니까 <b>두 점</b>만 찍으면 됩니다. 그런데 그 두 점이 아주 쉽습니다. 양 극단을 생각하면 되니까요.</p>
+      <div class="chart-wrap">${llLine()}</div>
+      <div class="calc">
+        <b>① 다이오드가 하나도 안 가져갈 때</b> (V<sub>D</sub> = 0)<br>
+        저항이 10 V를 다 쓰므로 → I = 10 V ÷ 1 kΩ = <b>10 mA</b> … 세로축 끝점<br><br>
+        <b>② 전류가 아예 안 흐를 때</b> (I = 0)<br>
+        저항에 걸리는 전압도 0이므로 → V<sub>D</sub> = <b>10 V</b> … 가로축 끝점
+      </div>
+      <p class="calc-note">세로축 끝점은 <b>전원 ÷ 저항</b>, 가로축 끝점은 <b>전원 전압</b>. 이 두 가지만 외우면 부하선은 언제든 3초 만에 그립니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>03 · 왜 교점이 답인가 — 물통과 이상한 밸브</h3>
+      <p>물통에 호스를 끼우고 끝에 <b>특이한 밸브</b>를 달았다고 해봅시다. 이 밸브는 <b>압력이 어느 정도 되기 전에는 거의 안 열리고, 그 뒤로는 확 열리는</b> 성질이 있습니다.</p>
+      <div class="chart-wrap">${llValve()}</div>
+      <p>자, 물이 얼마나 흐를까요? 밸브한테만 물어보면 안 됩니다. 호스가 가늘면 아무리 밸브가 활짝 열려도 물은 조금밖에 못 옵니다.
+      호스한테만 물어봐도 안 됩니다. 밸브가 안 열려 있으면 호스가 굵어도 소용없습니다.</p>
+      <p><b>두 사정을 동시에 만족하는 경우는 딱 하나뿐입니다.</b> 그 하나가 실제로 일어나는 일이고, 그래프에서는 두 선이 만나는 <b>교점</b>으로 나타납니다.</p>
+      <div class="dn-flow">밸브 = 다이오드 (곡선) · 호스 = 저항 (직선) · 실제로 흐르는 물 = 교점</div>
+    </div>
+
+    <div class="card">
+      <h3>04 · 교점에서 무엇을 읽는가</h3>
+      <div class="chart-wrap">${llMeet()}</div>
+      <p>교점의 <b>가로 좌표</b>가 다이오드에 걸리는 전압, <b>세로 좌표</b>가 회로에 흐르는 전류입니다.
+      그리고 저항에 걸리는 전압은 뺄셈 한 번으로 바로 나옵니다.</p>
+      <div class="calc">
+        V<sub>D</sub> ≈ <b>0.7 V</b> · I ≈ <b>9.3 mA</b> · V<sub>R</sub> = 10 − 0.7 = <b>9.3 V</b>
+      </div>
+      <p class="calc-note">교재에서 “실리콘이니까 0.7 V로 놓고 풀어라”라고 하는 것은 이 그림의 <b>지름길</b>입니다.
+      다이오드 곡선이 0.7 V 부근에서 거의 수직으로 서기 때문에, 전류가 꽤 변해도 교점의 가로 위치는 거의 안 움직입니다.
+      그래서 V<sub>D</sub>를 0.7 V로 고정해도 답이 크게 틀리지 않습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>05 · 그래서 왜 이걸 배우는가</h3>
+      <div class="mat-table-wrap"><table class="mat-table">
+        <thead><tr><th>이유</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>식으로 안 풀린다</td><td>다이오드 식에는 지수함수가 들어 있어 손으로 깔끔하게 풀리지 않습니다. 부하선은 교점 하나로 답을 줍니다.</td></tr>
+          <tr><td>경향이 보인다</td><td>저항을 키우면 선이 눕고 전류가 준다는 것이 <b>그림으로</b> 보입니다. 숫자만으로는 안 보이는 것입니다.</td></tr>
+          <tr><td>한계가 보인다</td><td>신호가 커지면 동작점이 선 위를 오가다가 <b>어디서 부딪히는지</b>가 보입니다. 4장의 포화·차단이 이 이야기입니다.</td></tr>
+          <tr class="hl-row"><td>4장으로 이어진다</td><td>트랜지스터도 방법이 똑같습니다. 곡선이 여러 개가 될 뿐이고, 바이어싱은 <b>그 선 위 어디에 Q를 놓을지</b> 정하는 일입니다.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h3>흔한 실수 세 가지</h3>
+      <div class="fact-grid">
+        <div class="fact-card myth"><span class="fact-tag">실수</span><p>부하선을 다이오드의 성질이라고 생각한다.</p></div>
+        <div class="fact-card truth"><span class="fact-tag">바로잡기</span><p>부하선은 <b>소자 바깥 회로</b>가 만든 선입니다. 전원과 저항만 알면 소자가 무엇인지 몰라도 그을 수 있습니다.</p></div>
+        <div class="fact-card myth"><span class="fact-tag">실수</span><p>저항을 바꾸면 그래프를 처음부터 다시 그린다.</p></div>
+        <div class="fact-card truth"><span class="fact-tag">바로잡기</span><p>가로축 끝점은 <b>전원 전압 그대로</b>입니다. 세로축 끝점만 다시 찍고 선을 다시 그으면 됩니다.</p></div>
+        <div class="fact-card myth"><span class="fact-tag">실수</span><p>교점이 두 개 이상 나올 수도 있다고 생각한다.</p></div>
+        <div class="fact-card truth"><span class="fact-tag">바로잡기</span><p>곡선이 계속 올라가고 직선이 계속 내려오므로 <b>만나는 점은 하나</b>입니다. 그래서 답도 하나로 정해집니다.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>스스로 확인</h3>
+      <p class="quiz-lead">수식 없이 말로 답해 보세요. 답을 적은 뒤 펼쳐서 맞춰 보면 됩니다.</p>
+      ${LL_FAQ.map((x,i)=>`
+        <div class="quiz-item">
+          <div class="quiz-q"><span class="quiz-no">${i+1}</span><span>${x.q}</span></div>
+          <details class="qa"><summary>정답 보기</summary><div class="a">${x.a}</div></details>
+        </div>`).join("")}
+    </div>
+  </section>`;
 }
 
 function renderDiodeNotes(){
