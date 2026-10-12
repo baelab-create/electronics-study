@@ -700,7 +700,8 @@ function renderChapter(c){
   </div>
   <iframe class="pdf-frame" src="${c.file}" title="Chapter ${c.n} 미리보기"></iframe>
   ${c.n === 1 ? renderDiodeNotes() : ""}
-  ${c.n === 2 ? renderLoadLineNotes() : ""}`;
+  ${c.n === 2 ? renderLoadLineNotes() : ""}
+  ${c.n === 2 ? renderClipClampNotes() : ""}`;
 }
 
 
@@ -731,6 +732,286 @@ function diodeResistanceFigure(mode){
   </svg>`;
 }
 
+
+
+/* ───────── CHAPTER 2 보조 자료: 클리퍼와 클램퍼 ───────── */
+
+/* 회로 기호 도구 */
+function ckW(x1,y1,x2,y2){ return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${VIZ.ink}" stroke-width="2.2" stroke-linecap="round"/>`; }
+function ckDot(x,y){ return `<circle cx="${x}" cy="${y}" r="3.6" fill="${VIZ.ink}"/>`; }
+function ckResH(x,y,w){
+  const s=w/12; let d=`M${x} ${y}`;
+  for(let i=0;i<6;i++){ d+=` L${x+s*(i*2+1)} ${y+(i%2?9:-9)}`; }
+  d+=` L${x+w} ${y}`;
+  return `<path d="${d}" fill="none" stroke="${VIZ.ink}" stroke-width="2.2" stroke-linejoin="round"/>`;
+}
+function ckResV(x,y,h){
+  const s=h/12; let d=`M${x} ${y}`;
+  for(let i=0;i<6;i++){ d+=` L${x+(i%2?9:-9)} ${y+s*(i*2+1)}`; }
+  d+=` L${x} ${y+h}`;
+  return `<path d="${d}" fill="none" stroke="${VIZ.ink}" stroke-width="2.2" stroke-linejoin="round"/>`;
+}
+function ckCapH(x,y){
+  return ckW(x-18,y,x-6,y)+ckW(x+6,y,x+18,y)
+    + `<line x1="${x-6}" y1="${y-13}" x2="${x-6}" y2="${y+13}" stroke="${VIZ.ink}" stroke-width="2.8"/>`
+    + `<line x1="${x+6}" y1="${y-13}" x2="${x+6}" y2="${y+13}" stroke="${VIZ.ink}" stroke-width="2.8"/>`;
+}
+function ckDiodeV(x,y,down){
+  const c=VIZ.ink;
+  if(down){
+    return `<path d="M${x-11} ${y-8} L${x+11} ${y-8} L${x} ${y+8} Z" fill="${c}"/>`
+         + `<line x1="${x-13}" y1="${y+8}" x2="${x+13}" y2="${y+8}" stroke="${c}" stroke-width="2.8"/>`;
+  }
+  return `<path d="M${x-11} ${y+8} L${x+11} ${y+8} L${x} ${y-8} Z" fill="${c}"/>`
+       + `<line x1="${x-13}" y1="${y-8}" x2="${x+13}" y2="${y-8}" stroke="${c}" stroke-width="2.8"/>`;
+}
+function ckSrc(x,y){
+  return `<circle cx="${x}" cy="${y}" r="21" fill="none" stroke="${VIZ.ink}" stroke-width="2.2"/>`
+    + `<path d="M${x-11} ${y} q5.5 -9 11 0 q5.5 9 11 0" fill="none" stroke="${VIZ.ink}" stroke-width="2"/>`;
+}
+function ckGnd(x,y){
+  return ckW(x,y,x,y+12)
+    + `<line x1="${x-14}" y1="${y+12}" x2="${x+14}" y2="${y+12}" stroke="${VIZ.ink}" stroke-width="2.6"/>`
+    + `<line x1="${x-9}" y1="${y+18}" x2="${x+9}" y2="${y+18}" stroke="${VIZ.ink}" stroke-width="2.4"/>`
+    + `<line x1="${x-4}" y1="${y+24}" x2="${x+4}" y2="${y+24}" stroke="${VIZ.ink}" stroke-width="2.2"/>`;
+}
+/* 파형 한 칸 */
+function ckWave(ox,oy,ow,oh,zf,amp,fn,title,color,marks){
+  const zy=oy+oh*zf;
+  let g=`<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy+oh}" stroke="${VIZ.axis}" stroke-width="1.2"/>`;
+  g+=`<line x1="${ox}" y1="${zy}" x2="${ox+ow}" y2="${zy}" stroke="${VIZ.axis}" stroke-width="1.3"/>`;
+  g+=`<text x="${ox-7}" y="${zy+4}" text-anchor="end" font-size="10.5" fill="${VIZ.muted}">0</text>`;
+  (marks||[]).forEach(([v,t])=>{
+    g+=`<line x1="${ox}" y1="${zy-v*amp}" x2="${ox+ow}" y2="${zy-v*amp}" stroke="${VIZ.grid}" stroke-width="1" stroke-dasharray="4 4"/>`;
+    g+=`<text x="${ox-7}" y="${zy-v*amp+4}" text-anchor="end" font-size="10.5" fill="${VIZ.muted}">${t}</text>`;
+  });
+  let d="";
+  for(let i=0;i<=260;i++){
+    const t=i/260*4*Math.PI, v=fn(Math.sin(t));
+    d+=(d?"L":"M")+(ox+i/260*ow).toFixed(1)+" "+(zy-v*amp).toFixed(1);
+  }
+  g+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2.6"/>`;
+  g+=`<text x="${ox}" y="${oy-7}" font-size="12" font-weight="800" fill="${color}">${title}</text>`;
+  return g;
+}
+
+/* 클리퍼 · 클램퍼 대표 회로 한 장 */
+function clipClampFig(kind){
+  const w=820, h=340;
+  const TOP=100, BOT=218, X0=62, XO=362;
+  const isClip = kind.indexOf("clip")===0;
+  const isPos  = kind.indexOf("pos")>=0;
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${kind} 대표 회로와 입출력 파형">`;
+  /* ── 회로 ── */
+  s+=ckSrc(X0,(TOP+BOT)/2);
+  s+=ckW(X0,TOP,X0,(TOP+BOT)/2-21)+ckW(X0,(TOP+BOT)/2+21,X0,BOT);
+  s+=`<text x="${X0-30}" y="${(TOP+BOT)/2+5}" text-anchor="end" font-size="13" font-weight="800" fill="${VIZ.ink}">v(i)</text>`;
+  s+=ckW(X0,BOT,XO,BOT);
+  if(isClip){
+    s+=ckW(X0,TOP,132,TOP)+ckResH(132,TOP,76)+ckW(208,TOP,XO,TOP);
+    s+=`<text x="170" y="${TOP-18}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${VIZ.ink}">R</text>`;
+    s+=ckW(272,TOP,272,BOT)+ckDot(272,TOP);
+    s+=ckDiodeV(272,(TOP+BOT)/2,isPos);
+    s+=`<text x="294" y="${(TOP+BOT)/2+5}" font-size="12.5" font-weight="800" fill="#b42318">D</text>`;
+    s+=ckGnd(217,BOT);
+  }else{
+    s+=ckW(X0,TOP,132,TOP)+ckCapH(150,TOP)+ckW(168,TOP,XO,TOP);
+    s+=`<text x="150" y="${TOP-22}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${VIZ.ink}">C</text>`;
+    s+=ckW(218,TOP,218,BOT)+ckDot(218,TOP)+ckResV(218,TOP+22,74);
+    s+=`<text x="196" y="${(TOP+BOT)/2+5}" text-anchor="end" font-size="12.5" font-weight="800" fill="${VIZ.ink}">R</text>`;
+    s+=ckW(300,TOP,300,BOT)+ckDot(300,TOP);
+    s+=ckDiodeV(300,(TOP+BOT)/2,!isPos);
+    s+=`<text x="322" y="${(TOP+BOT)/2+5}" font-size="12.5" font-weight="800" fill="#b42318">D</text>`;
+    s+=ckGnd(259,BOT);
+  }
+  s+=`<circle cx="${XO}" cy="${TOP}" r="4.6" fill="none" stroke="${VIZ.ink}" stroke-width="2.2"/>`;
+  s+=`<circle cx="${XO}" cy="${BOT}" r="4.6" fill="none" stroke="${VIZ.ink}" stroke-width="2.2"/>`;
+  s+=`<text x="${XO+14}" y="${(TOP+BOT)/2+5}" font-size="13" font-weight="800" fill="${VIZ.ink}">v(o)</text>`;
+  s+=`<text x="30" y="30" font-size="13.5" font-weight="800" fill="${VIZ.ink}">${
+     isClip ? (isPos?"파지티브 클리퍼 — 양의 부분을 잘라낸다":"네거티브 클리퍼 — 음의 부분을 잘라낸다")
+            : (isPos?"파지티브 클램퍼 — 파형을 양(+)쪽으로 올린다":"네거티브 클램퍼 — 파형을 음(−)쪽으로 내린다")}</text>`;
+  s+=`<text x="30" y="${h-10}" font-size="11.5" fill="${VIZ.muted}">${
+     isClip ? "다이오드가 켜지는 반주기 동안 출력이 0 부근으로 묶입니다. 실제 다이오드라면 0 대신 ±0.7 V에서 잘립니다."
+            : "다이오드가 켜지는 반주기 동안 커패시터가 충전되고, 그 충전 전압만큼 파형 전체가 밀려납니다."}</text>`;
+  /* ── 파형 ── */
+  const WX=470, WW=310;
+  s+=`<line x1="420" y1="40" x2="420" y2="300" stroke="${VIZ.grid}" stroke-width="1.3" stroke-dasharray="5 5"/>`;
+  s+=ckWave(WX,70,WW,78,0.5,30,v=>v,"입력 v(i)",VIZ.blue,[[1,"V(m)"],[-1,"−V(m)"]]);
+  const outFn = kind==="clip-pos" ? (v=>Math.min(v,0))
+              : kind==="clip-neg" ? (v=>Math.max(v,0))
+              : kind==="clamp-pos"? (v=>v+1)
+              :                     (v=>v-1);
+  const zf = kind==="clip-pos" ? 0.22 : kind==="clip-neg" ? 0.78 : kind==="clamp-pos" ? 0.84 : 0.16;
+  const mk = kind==="clip-pos" ? [[-1,"−V(m)"]]
+           : kind==="clip-neg" ? [[1,"V(m)"]]
+           : kind==="clamp-pos"? [[2,"2V(m)"]]
+           :                     [[-2,"−2V(m)"]];
+  s+=ckWave(WX,196,WW,104,zf,33,outFn,"출력 v(o)","#b42318",mk);
+  return s+"</svg>";
+}
+
+/* 자른다 vs 옮긴다 */
+function clipVsClamp(){
+  const w=820, h=300;
+  const panel=(ox,title,sub,fn,zf,c)=>{
+    const WX=ox+48, WW=250, OY=92, OH=110;
+    let g=`<text x="${ox+170}" y="40" text-anchor="middle" font-size="15" font-weight="800" fill="${c}">${title}</text>`;
+    g+=`<text x="${ox+170}" y="62" text-anchor="middle" font-size="12" fill="${VIZ.sub}">${sub}</text>`;
+    const zy=OY+OH*zf;
+    g+=`<line x1="${WX}" y1="${zy}" x2="${WX+WW}" y2="${zy}" stroke="${VIZ.axis}" stroke-width="1.3"/>`;
+    g+=`<text x="${WX-7}" y="${zy+4}" text-anchor="end" font-size="10.5" fill="${VIZ.muted}">0</text>`;
+    let d0="",d1="";
+    for(let i=0;i<=240;i++){
+      const t=i/240*4*Math.PI, sv=Math.sin(t), x=(WX+i/240*WW).toFixed(1);
+      d0+=(d0?"L":"M")+x+" "+(zy-sv*30).toFixed(1);
+      d1+=(d1?"L":"M")+x+" "+(zy-fn(sv)*30).toFixed(1);
+    }
+    g+=`<path d="${d0}" fill="none" stroke="${VIZ.axis}" stroke-width="1.8" stroke-dasharray="5 4"/>`;
+    g+=`<path d="${d1}" fill="none" stroke="${c}" stroke-width="2.8"/>`;
+    g+=`<text x="${ox+170}" y="${OY+OH+34}" text-anchor="middle" font-size="11.5" fill="${VIZ.muted}">점선 = 원래 파형</text>`;
+    return g;
+  };
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="클리퍼는 파형을 자르고 클램퍼는 파형을 통째로 옮긴다">`;
+  s+=panel(20,"클리퍼 — 자른다","모양이 바뀐다 · 0 기준은 그대로",v=>Math.min(v,0),0.3,"#b42318");
+  s+=`<line x1="410" y1="30" x2="410" y2="260" stroke="${VIZ.grid}" stroke-width="1.3" stroke-dasharray="5 5"/>`;
+  s+=panel(430,"클램퍼 — 옮긴다","모양은 그대로 · 0 기준이 바뀐다",v=>v+1,0.86,"#0a7d57");
+  s+=`<text x="410" y="${h-10}" text-anchor="middle" font-size="12.5" font-weight="800" fill="${VIZ.ink}">둘 다 다이오드 회로지만, 하나는 파형을 깎고 하나는 파형을 들어 올립니다.</text>`;
+  return s+"</svg>";
+}
+
+const CC_COMPARE = [
+  ["하는 일", "파형의 일부를 잘라낸다", "파형을 통째로 위나 아래로 옮긴다"],
+  ["파형의 모양", "바뀐다", "그대로다", true],
+  ["꼭 필요한 부품", "다이오드 + 저항", "다이오드 + 커패시터 (+ 저항)", true],
+  ["0을 기준으로 한 최댓값", "입력보다 작아진다", "입력의 약 2배까지 커진다"],
+  ["진폭(peak-to-peak)", "줄어든다", "그대로다"],
+  ["다른 이름", "리미터 (limiter)", "DC 복원기 (DC restorer)"],
+  ["쓰는 곳", "과전압 보호 · 파형 정형 · 잡음 제거", "잃어버린 DC 레벨 되살리기"],
+];
+
+const CC_FAQ = [
+  {q:"클리퍼와 클램퍼를 한 문장으로 구분하면?",
+   a:"<b>클리퍼는 자르고, 클램퍼는 옮깁니다.</b><br>클리퍼는 파형의 일부를 깎아내므로 <b>모양이 바뀌고</b>, 클램퍼는 파형을 통째로 위아래로 밀어내므로 <b>모양은 그대로</b>입니다."},
+  {q:"클램퍼에는 왜 커패시터가 꼭 필요한가요?",
+   a:"파형을 옮기려면 <b>일정한 DC 전압을 더해 주어야</b> 하는데, 그 전압을 만들어 저장해 두는 것이 커패시터이기 때문입니다.<br>다이오드가 켜지는 반주기 동안 커패시터가 충전되고, 다이오드가 꺼진 뒤에는 그 충전 전압이 <b>배터리처럼</b> 입력에 더해집니다. 그래서 클리퍼에는 없고 클램퍼에만 있습니다."},
+  {q:"클램퍼를 쓰면 신호가 2배로 커지나요?",
+   a:"아닙니다. 헷갈리기 쉬운 부분입니다.<br><b>진폭(peak-to-peak)은 그대로</b>입니다. 다만 0을 기준으로 잰 <b>최댓값</b>이 2배가 되는 것뿐입니다. 파형이 통째로 올라갔기 때문에 꼭대기가 높아 보이는 것이지, 신호가 커진 것이 아닙니다."},
+  {q:"파지티브·네거티브라는 이름은 무엇을 기준으로 붙은 건가요?",
+   a:"<b>클리퍼는 잘라내는 쪽</b>, <b>클램퍼는 옮겨 가는 쪽</b>을 가리킵니다.<br>파지티브 클리퍼는 양의 부분을 <b>잘라내고</b>, 파지티브 클램퍼는 파형을 양쪽으로 <b>올립니다.</b> 이름의 기준이 서로 달라서 헷갈립니다.<br>시험에서는 이름보다 <b>다이오드의 방향</b>을 보고 판단하는 것이 확실합니다."},
+  {q:"이상적인 다이오드로 풀 때와 실제 다이오드로 풀 때 무엇이 달라지나요?",
+   a:"<b>클리퍼</b>는 자르는 위치가 0이 아니라 <b>±0.7 V</b>가 됩니다. 0.7 V만큼 더 남거나 덜 잘립니다.<br><b>클램퍼</b>는 옮겨지는 양이 V<sub>m</sub>이 아니라 <b>V<sub>m</sub> − 0.7 V</b>가 됩니다. 그래서 파형이 0에 딱 닿지 않고 0.7 V만큼 어긋납니다."},
+  {q:"클램퍼에서 저항은 무슨 일을 하나요?",
+   a:"다이오드가 꺼져 있는 동안 커패시터가 <b>너무 빨리 방전되지 않도록</b> 시정수를 정합니다.<br>방전이 빠르면 애써 충전한 전압이 흘러내려 파형이 기울어집니다. 그래서 RC 시정수를 신호의 반주기보다 <b>충분히 길게</b> 잡습니다."},
+];
+
+function renderClipClampNotes(){
+  return `<section class="diode-notes ch-notes" aria-labelledby="cc-notes-title">
+    <span class="ch-eyebrow">CHAPTER 2 · 더 쉽게 이해하기</span>
+    <h2 id="cc-notes-title" style="margin-top:14px">클리퍼와 클램퍼</h2>
+    <p class="dn-lead">파형을 자르는 회로와, 파형을 통째로 옮기는 회로</p>
+
+    <div class="card">
+      <h3>한 문장으로 말하면</h3>
+      <div class="quote"><b>“클리퍼는 파형을 자르고, 클램퍼는 파형을 옮긴다.”</b></div>
+      <p>교재에는 두 회로의 변형이 아주 많이 나옵니다. 그런데 <b>이 한 문장만 붙잡고 있으면</b> 처음 보는 회로도 둘 중 어느 쪽인지 바로 구분됩니다.
+      커패시터가 신호 경로에 직렬로 들어 있으면 클램퍼, 없으면 클리퍼입니다.</p>
+      <div class="chart-wrap">${clipVsClamp()}</div>
+      <p class="calc-note">클리퍼는 파형의 <b>모양</b>을 바꾸고, 클램퍼는 <b>기준선</b>을 바꿉니다. 클램퍼를 지나도 파형의 생김새는 그대로입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>무엇에 쓰는가</h3>
+      <div class="fact-grid">
+        <div class="fact-card truth"><span class="fact-tag">클리퍼</span><p><b>과전압 보호</b> — 정해진 전압을 넘는 부분을 잘라내 뒷단 회로를 지킵니다. 요즘 칩의 입력 핀 안에도 이 역할을 하는 다이오드가 들어 있습니다.</p></div>
+        <div class="fact-card truth"><span class="fact-tag">클리퍼</span><p><b>파형 정형</b> — 사인파의 위아래를 깎으면 사각파에 가까워집니다. 디지털 신호를 만들거나 잡음의 뾰족한 꼭대기를 없앨 때 씁니다.</p></div>
+        <div class="fact-card truth"><span class="fact-tag">클램퍼</span><p><b>DC 레벨 복원</b> — 커패시터로 결합하면 DC 성분이 사라집니다. 그 잃어버린 기준선을 되살리는 것이 클램퍼이고, 그래서 <b>DC 복원기</b>라고도 부릅니다.</p></div>
+        <div class="fact-card truth"><span class="fact-tag">클램퍼</span><p><b>기준점 맞추기</b> — 뒷단이 0 V 이상만 받을 수 있다면, 클램퍼로 파형 전체를 0 위로 올려 보냅니다.</p></div>
+      </div>
+      <p class="calc-note">클램퍼의 쓰임새는 5장에서 다시 만납니다. 결합 커패시터가 <b>직류를 막는다</b>는 성질이 거기서는 장점이지만,
+      DC 레벨 자체가 정보인 신호에서는 문제가 되고, 그때 클램퍼가 필요해집니다.</p>
+    </div>
+
+    <div class="hist">
+      <h4>📜 왜 1940년대에 이 회로들이 쏟아졌나</h4>
+      <p>클리퍼와 클램퍼는 오디오 시대의 회로가 아닙니다. <b>펄스의 시대</b>에 태어났습니다.</p>
+      <p>1940년대 초 전쟁 중에 <b>레이더</b>가 급하게 발전합니다. 레이더는 짧고 날카로운 펄스를 쏘고 돌아온 메아리를 읽는 장치인데,
+      여기서 다루는 신호는 매끈한 사인파가 아니라 <b>모서리가 살아 있어야 하는 펄스</b>였습니다.
+      펄스의 높이를 일정하게 잘라 맞추고(클리퍼), 기준선이 흔들리지 않게 붙잡아 두는(클램퍼) 일이 회로 설계의 핵심 작업이 됩니다.
+      이 시기에 쌓인 기법들은 전쟁이 끝난 뒤 <b>MIT 방사연구소 시리즈</b>(1947~48)의 『Waveforms』 권으로 정리되어 공개됩니다.</p>
+      <p>그리고 곧바로 <b>텔레비전</b>이 이 회로들을 대량으로 쓰기 시작합니다. 여기서 클램퍼의 진짜 쓸모가 드러납니다.<br>
+      영상 신호에서 <b>DC 성분은 화면 전체의 밝기</b>를 담고 있습니다. 그런데 신호가 커패시터로 결합되는 단을 지나면 그 DC 성분이 사라집니다.
+      밝은 장면과 어두운 장면의 기준선이 제멋대로 떠다니게 되는 것이죠.
+      그래서 수상기 안에서 매 주사선마다 기준선을 제자리로 되돌리는 회로가 필요했고, 그 이름이 <b>DC 복원기(DC restorer)</b>입니다. 클램퍼의 다른 이름입니다.</p>
+      <p>교재에서 이 회로들이 다이오드 단원 끝에 붙어 있어 곁다리처럼 보이지만,
+      사실은 <b>파형을 다루는 기술 전체의 출발점</b>이었습니다. 오실로스코프, 초기 컴퓨터의 펄스 회로, 디지털 신호의 정형이 모두 여기서 갈라져 나왔습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>대표 회로 ① · 파지티브 클리퍼</h3>
+      <p>저항을 신호 경로에 직렬로 두고, 다이오드를 출력과 <b>나란히</b> 답니다. 다이오드의 화살표가 <b>아래(접지) 쪽</b>을 향합니다.</p>
+      <div class="chart-wrap">${clipClampFig("clip-pos")}</div>
+      <p><b>양의 반주기</b>에는 다이오드가 켜져 출력이 0 부근에 묶입니다 — 양의 부분이 잘려 나갑니다.<br>
+      <b>음의 반주기</b>에는 다이오드가 꺼져 입력이 그대로 출력으로 나옵니다.</p>
+      <p class="calc-note">실제 실리콘 다이오드라면 0이 아니라 <b>+0.7 V</b>에서 잘립니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>대표 회로 ② · 네거티브 클리퍼</h3>
+      <p>회로는 ①과 똑같고 <b>다이오드 방향만 반대</b>입니다. 화살표가 접지에서 위쪽을 향합니다.</p>
+      <div class="chart-wrap">${clipClampFig("clip-neg")}</div>
+      <p><b>음의 반주기</b>에 다이오드가 켜져 출력이 0 부근에 묶이고, <b>양의 반주기</b>는 그대로 지나갑니다.
+      앞의 회로와 정확히 거울처럼 대칭입니다.</p>
+      <p class="calc-note">실제 다이오드라면 <b>−0.7 V</b>에서 잘립니다. 클리퍼 문제는 <b>다이오드가 언제 켜지는지</b> 한 번만 따지면 끝납니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>대표 회로 ③ · 파지티브 클램퍼</h3>
+      <p>이번에는 <b>커패시터가 신호 경로에 직렬로</b> 들어갑니다. 그리고 다이오드와 저항이 출력과 나란히 붙습니다.</p>
+      <div class="chart-wrap">${clipClampFig("clamp-pos")}</div>
+      <p><b>음의 반주기</b>에 다이오드가 켜지면서 커패시터가 약 V<sub>m</sub>까지 충전됩니다.
+      다이오드가 꺼진 뒤에는 이 충전 전압이 <b>배터리처럼</b> 입력에 더해져, 파형 전체가 위로 들립니다.</p>
+      <p class="calc-note">결과적으로 출력은 <b>0에서 +2V<sub>m</sub></b> 사이를 오갑니다. 파형의 바닥이 0에 닿는 셈이죠.
+      다시 말하지만 <b>진폭은 그대로</b>이고, 기준선만 올라간 것입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>대표 회로 ④ · 네거티브 클램퍼</h3>
+      <p>③과 똑같고 <b>다이오드 방향만 반대</b>입니다.</p>
+      <div class="chart-wrap">${clipClampFig("clamp-neg")}</div>
+      <p><b>양의 반주기</b>에 다이오드가 켜져 커패시터가 충전되고, 그 전압이 입력에서 빠지면서 파형 전체가 아래로 내려갑니다.
+      출력은 <b>0에서 −2V<sub>m</sub></b> 사이를 오가고, 파형의 꼭대기가 0에 닿습니다.</p>
+      <p class="calc-note">저항은 다이오드가 꺼져 있는 동안 커패시터가 <b>너무 빨리 방전되지 않도록</b> 붙잡아 줍니다.
+      RC 시정수를 신호의 반주기보다 충분히 길게 잡아야 파형이 기울지 않습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>한눈에 비교</h3>
+      <div class="mat-table-wrap"><table class="mat-table">
+        <thead><tr><th>　</th><th>클리퍼</th><th>클램퍼</th></tr></thead>
+        <tbody>${CC_COMPARE.map(r=>`<tr${r[3]?' class="hl-row"':''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody>
+      </table></div>
+      <p class="calc-note">회로도를 처음 봤을 때 <b>신호 경로에 커패시터가 직렬로 있는지</b>만 확인하면 둘을 바로 가를 수 있습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>문제 풀 때 이 순서로</h3>
+      <div class="dn-flow">① 커패시터가 직렬인가? → 클리퍼인지 클램퍼인지 결정</div>
+      <p style="margin-top:14px"><b>클리퍼라면</b> — 다이오드가 켜지는 반주기를 찾고, 그 구간의 출력을 0(또는 ±0.7 V)으로, 나머지 구간은 입력 그대로 그립니다.</p>
+      <p><b>클램퍼라면</b> — 다이오드가 켜지는 반주기에서 커패시터가 얼마까지 충전되는지 구하고, 그 값만큼 파형을 통째로 밀어 올리거나 내립니다.
+      마지막에 <b>꼭대기나 바닥이 0에 닿는지</b>로 검산하면 실수를 줄일 수 있습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>스스로 확인</h3>
+      <p class="quiz-lead">말로 답해 보고 펼쳐서 맞춰 보세요.</p>
+      ${CC_FAQ.map((x,i)=>`
+        <div class="quiz-item">
+          <div class="quiz-q"><span class="quiz-no">${i+1}</span><span>${x.q}</span></div>
+          <details class="qa"><summary>정답 보기</summary><div class="a">${x.a}</div></details>
+        </div>`).join("")}
+    </div>
+  </section>`;
+}
 
 /* ───────── CHAPTER 2 보조 자료: 부하선 해석 ───────── */
 
