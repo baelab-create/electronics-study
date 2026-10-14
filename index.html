@@ -4584,77 +4584,81 @@ function renderSimulator(){
 /* ───────── 고정 자료: 중간고사 영어 문장 ───────── */
 const MIDTERM_EN = [
   /* ── Chapter 1. Semiconductor Diodes ── */
-  {n:1, ch:1, ko:"반도체는 좋은 도체와 절연체 사이의 전도도를 갖는 특별한 종류의 원소이다.",
-   en:"Semiconductors are a special class of elements having a conductivity between that of a good conductor and that of an insulator."},
-  {n:2, ch:1, ko:"전자소자 제작에 가장 자주 사용되는 세 가지 반도체는 Ge, Si, GaAs이다.",
-   en:"The three semiconductors used most frequently in the construction of electronic devices are Ge, Si, and GaAs."},
-  {n:3, ch:1, ko:"전자를 공유함으로써 강화되는 원자 간의 결합을 공유결합이라고 한다.",
-   en:"This bonding of atoms, strengthened by the sharing of electrons, is called covalent bonding."},
-  {n:4, ch:1, ko:"진성이라는 용어는 불순물의 수를 매우 낮은 수준으로 — 현대 기술로 얻을 수 있는 가장 순수한 수준으로 — 줄이도록 세심하게 정제된 반도체 물질에 적용된다.",
-   en:"The term intrinsic is applied to any semiconductor material that has been carefully refined to reduce the number of impurities to a very low level—essentially as pure as can be made available through modern technology."},
-  {n:5, ch:1, ko:"도핑 공정을 거친 반도체 물질을 외인성 물질이라고 한다.",
+  {n:1, ch:1, lv:"하", pt:2, ko:"도핑 공정을 거친 반도체 물질을 외인성 물질이라고 한다.",
    en:"A semiconductor material that has been subjected to the doping process is called an extrinsic material."},
-  {n:6, ch:1, ko:"n형 물질은 안티몬, 비소, 인처럼 가전자가 5개인(5가) 불순물 원소를 주입하여 만든다.",
+  {n:2, ch:1, lv:"중", pt:3, ko:"n형 물질은 5개의 가전자전자를 가진 불순물 원소를 주입하여 만든다.",
    en:"An n-type material is created by introducing impurity elements that have five valence electrons (pentavalent), such as antimony, arsenic, and phosphorus."},
-  {n:7, ch:1, ko:"p형 물질은 가전자가 3개인 불순물 원자를 순수한 게르마늄 또는 실리콘 결정에 도핑하여 만든다.",
+  {n:3, ch:1, lv:"하", pt:2, ko:"5개의 가전자전자를 가진 확산 불순물을 donor atom이라고 한다.",
+   en:"Diffused impurities with five valence electrons are called donor atoms."},
+  {n:4, ch:1, lv:"상", pt:4, ko:"n형 물질에 많은 자유 캐리어가 만들어졌더라도, 그 물질은 여전히 전기적으로 중성이다.",
+   en:"It is important to realize that even though a large number of free carriers have been established in the n-type material, it is still electrically neutral."},
+  {n:5, ch:1, lv:"중", pt:3, ko:"p형 물질은 3개의 가전자전자를 가진 불순물 원자를 순수한 게르마늄 또는 실리콘 결정에 도핑하여 만든다.",
    en:"The p-type material is formed by doping a pure germanium or silicon crystal with impurity atoms having three valence electrons."},
-  {n:8, ch:1, ko:"이 교재에서 사용하는 전류 방향은 정공의 흐름 방향으로 나타내는 관습적 전류 방향이다.",
+  {n:6, ch:1, lv:"하", pt:2, ko:"만들어진 p형 물질 역시 n형 물질과 같은 이유로 전기적으로 중성이다.",
+   en:"The resulting p-type material is electrically neutral, for the same reasons described for the n-type material."},
+  {n:7, ch:1, lv:"중", pt:3, ko:"이 교재에서 사용하는 전류 방향은 정공의 흐름 방향으로 표시되는 관습적 전류 방향이다.",
    en:"The direction to be used in this text is that of conventional flow, which is indicated by the direction of hole flow."},
-  {n:9, ch:1, ko:"n형 물질에서 전자는 다수 캐리어이고 정공은 소수 캐리어이다.",
+  {n:8, ch:1, lv:"하", pt:2, ko:"n형 물질에서 전자는 다수 캐리어이고 정공은 소수 캐리어이다.",
    en:"In an n-type material the electron is called the majority carrier and the hole the minority carrier."},
-  {n:10, ch:1, ko:"p형 물질에서 정공은 다수 캐리어이고 전자는 소수 캐리어이다.",
+  {n:9, ch:1, lv:"하", pt:2, ko:"p형 물질에서 정공은 다수 캐리어이고 전자는 소수 캐리어이다.",
    en:"In a p-type material the hole is the majority carrier and the electron is the minority carrier."},
-  {n:11, ch:1, ko:"노출된 양이온과 음이온으로 이루어진 이 영역을, 그 영역에서 자유 캐리어가 고갈되었기 때문에 공핍영역이라고 한다.",
+  {n:10, ch:1, lv:"중", pt:3, ko:"반도체 다이오드는 n형 물질과 p형 물질을 단순히 접합하여 만들어진다.",
+   en:"The semiconductor diode is created by simply joining an n-type and a p-type material together."},
+  {n:11, ch:1, lv:"중", pt:3, ko:"노출된 양이온과 음이온으로 이루어진 영역을 자유 캐리어의 고갈 때문에 공핍영역이라고 한다.",
    en:"This region of uncovered positive and negative ions is called the depletion region due to the “depletion” of free carriers in the region."},
-  {n:12, ch:1, ko:"바이어스란 소자로부터 반응을 얻기 위해 두 단자 사이에 외부 전압을 인가하는 것을 의미한다.",
+  {n:12, ch:1, lv:"중", pt:3, ko:"바이어스란 소자의 반응을 얻기 위해 두 단자 사이에 외부 전압을 인가하는 것을 의미한다.",
    en:"The term bias refers to the application of an external voltage across the two terminals of the device to extract a response."},
-  {n:13, ch:1, ko:"순방향 바이어스 또는 ON 상태는 p형 물질에 양전위를, n형 물질에 음전위를 인가하여 형성한다.",
-   en:"A forward-bias or “on” condition is established by applying the positive potential to p-type material and the negative potential to the n-type material."},
-  {n:14, ch:1, ko:"외부에서 인가된 바이어스가 없으면 다이오드 전류는 0이다.",
-   en:"In the absence of any externally applied bias, the diode current is zero."},
-  {n:15, ch:1, ko:"역방향 바이어스에서 이러한 급격한 특성 변화를 발생시키는 전위를 항복전위라고 한다.",
+  {n:13, ch:1, lv:"중", pt:3, ko:"반도체 다이오드에 바이어스가 인가되지 않으면 한 방향으로의 순 전하 흐름은 0이다.",
+   en:"In the absence of an applied bias across a semiconductor diode, the net flow of charge in one direction is zero."},
+  {n:14, ch:1, lv:"상", pt:4, ko:"역방향 바이어스에서는 n형 물질에 양의 단자를, p형 물질에 음의 단자를 연결한다.",
+   en:"The positive terminal is connected to the n-type material and the negative terminal is connected to the p-type material."},
+  {n:15, ch:1, lv:"중", pt:3, ko:"공핍영역이 넓어지면 다수 캐리어가 극복하기에는 너무 큰 장벽이 형성되어 다수 캐리어의 흐름이 사실상 0으로 감소한다.",
+   en:"This widening of the depletion region will establish too great a barrier for the majority carriers to overcome, effectively reducing the majority-carrier flow to zero."},
+  {n:16, ch:1, lv:"하", pt:2, ko:"역방향 바이어스 조건에서 존재하는 전류를 역포화전류라고 하며 Is로 나타낸다.",
+   en:"The current that exists under reverse-bias conditions is called the reverse saturation current and is represented by I<sub>s</sub>."},
+  {n:17, ch:1, lv:"중", pt:3, ko:"순방향 바이어스 또는 ON 상태는 p형 물질에 양전위를, n형 물질에 음전위를 인가하여 형성한다.",
+   en:"A forward-bias or “on” condition is established by applying the positive potential to the p-type material and the negative potential to the n-type material."},
+  {n:18, ch:1, lv:"상", pt:4, ko:"순방향 바이어스 전압은 n형의 전자와 p형의 정공이 접합부 근처의 이온과 재결합하도록 하여 공핍영역의 폭을 감소시킨다.",
+   en:"The application of a forward-bias potential V<sub>D</sub> will “pressure” electrons in the n-type material and holes in the p-type material to recombine with the ions near the boundary and reduce the width of the depletion region."},
+  {n:19, ch:1, lv:"중", pt:3, ko:"역방향 바이어스에서 급격한 특성 변화를 발생시키는 전위를 항복전위라고 한다.",
    en:"The reverse-bias potential that results in this dramatic change in characteristics is called the breakdown potential."},
-  {n:16, ch:1, ko:"순방향 바이어스 영역에서 실리콘 다이오드의 특성은 온도가 1°C 증가할 때마다 2.5 mV의 비율로 왼쪽으로 이동한다.",
+  {n:20, ch:1, lv:"상", pt:4, ko:"순방향 바이어스 영역에서 실리콘 다이오드의 특성은 온도가 1°C 증가할 때마다 2.5 mV의 비율로 왼쪽으로 이동한다.",
    en:"In the forward-bias region the characteristics of a silicon diode shift to the left at a rate of 2.5 mV per centigrade degree increase in temperature."},
-  {n:17, ch:1, ko:"다이오드의 동작점이 한 영역에서 다른 영역으로 이동하면 비선형 특성곡선 때문에 다이오드의 저항도 변한다.",
+  {n:21, ch:1, lv:"중", pt:3, ko:"다이오드의 동작점이 한 영역에서 다른 영역으로 이동하면 비선형 특성곡선 때문에 다이오드의 저항도 변한다.",
    en:"As the operating point of a diode moves from one region to another the resistance of the diode will also change due to the nonlinear shape of the characteristic curve."},
-  {n:18, ch:1, ko:"등가회로는 특정 동작영역에서 소자 또는 시스템의 실제 단자 특성을 가장 잘 나타내도록 적절하게 선택된 소자들의 조합이다.",
-   en:"An equivalent circuit is a combination of elements properly chosen to best represent the actual terminal characteristics of a device or system in a particular operating region."},
-  {n:19, ch:1, ko:"순방향 바이어스된 실리콘 다이오드는 DC 조건에서 도통 상태일 때 다이오드 전류의 크기와 관계없이 약 0.7 V의 전압강하를 갖는다.",
-   en:"A forward-biased silicon diode in an electronic system under dc conditions has a drop of 0.7 V across it in the conduction state at any level of diode current."},
-  {n:20, ch:1, ko:"이상적인 다이오드는 도통 영역에서는 단락회로이고 비도통 영역에서는 개방회로이다.",
-   en:"The ideal diode is a short in the region of conduction and an open circuit in the region of nonconduction."},
-  {n:21, ch:1, ko:"GaAs로 만들어진 다이오드는 p-n 접합의 재결합 과정에서 적외선(비가시) 영역의 빛을 방출한다.",
+  {n:22, ch:1, lv:"상", pt:4, ko:"정현파 입력이 인가되면 변화하는 입력에 의해 순간 동작점이 특성곡선의 한 영역을 따라 위아래로 이동한다.",
+   en:"The varying input will move the instantaneous operating point up and down a region of the characteristics and thus defines a specific change in current and voltage."},
+  {n:23, ch:1, lv:"상", pt:4, ko:"Q-point를 통과하는 특성곡선의 접선은 해당 영역의 AC 또는 동적 저항을 결정하는 데 사용되는 전압과 전류의 변화를 정의한다.",
+   en:"A straight line drawn tangent to the curve through the Q-point will define a particular change in voltage and current that can be used to determine the ac or dynamic resistance for this region of the diode characteristics."},
+  {n:24, ch:1, lv:"중", pt:3, ko:"GaAs로 만들어진 다이오드는 p-n 접합의 재결합 과정에서 적외선 영역의 빛을 방출한다.",
    en:"Diodes constructed of GaAs emit light in the infrared (invisible) zone during the recombination process at the p–n junction."},
 
   /* ── Chapter 2. Diode Applications ── */
-  {n:22, ch:2, ko:"이 회로를 푸는 것은 다이오드의 특성과 선택된 회로 파라미터를 동시에 만족시키는 전류와 전압을 찾는 것이다.",
-   en:"Solving the circuit is all about finding the current and voltage levels that will satisfy both the characteristics of the diode and the chosen network parameters at the same time."},
-  {n:23, ch:2, ko:"이 직선은 수직축과의 교점이 인가된 부하 R에 의해 결정되기 때문에 부하선이라고 한다.",
+  {n:25, ch:2, lv:"중", pt:3, ko:"이 직선을 부하선이라고 부르는 이유는 수직축과의 교점이 인가된 부하 R에 의해 결정되기 때문이다.",
    en:"The straight line is called a load line because the intersection on the vertical axis is defined by the applied load R."},
-  {n:24, ch:2, ko:"두 곡선의 교점은 회로의 해와 회로의 전류 및 전압 레벨을 결정한다.",
+  {n:26, ch:2, lv:"중", pt:3, ko:"두 곡선의 교점은 회로의 해를 정의하고 회로의 전류와 전압 레벨을 결정한다.",
    en:"The intersection of the two curves will define the solution for the network and define the current and voltage levels for the network."},
-  {n:25, ch:2, ko:"반파 정류기는 AC-DC 변환 과정에서 특히 유용한 평균값을 갖는 출력 파형을 생성한다.",
-   en:"A half-wave rectifier will generate a waveform v<sub>o</sub> that will have an average value of particular use in the ac-to-dc conversion process."},
-  {n:26, ch:2, ko:"정류 과정에 사용되는 다이오드는 일반적으로 정류기라고 한다.",
-   en:"When employed in the rectification process, a diode is typically referred to as a rectifier."},
-  {n:27, ch:2, ko:"입력신호의 절반을 제거하여 DC 레벨을 형성하는 과정을 반파 정류라고 한다.",
+  {n:27, ch:2, lv:"중", pt:3, ko:"평균값이 0인 인가 파형을 DC 레벨을 갖는 파형으로 바꾸는 과정을 정류라고 한다.",
+   en:"Rectification is a process whereby an applied waveform of zero average value is changed to one that has a dc level."},
+  {n:28, ch:2, lv:"중", pt:3, ko:"입력신호의 절반을 제거하여 DC 레벨을 형성하는 과정을 반파 정류라고 한다.",
    en:"The process of removing one-half the input signal to establish a dc level is called half-wave rectification."},
-  {n:28, ch:2, ko:"다이오드가 켜지기 위해서는 인가 신호가 최소 0.7 V가 되어야 한다.",
-   en:"The applied signal must now be at least 0.7 V before the diode can turn “on.”"},
-  {n:29, ch:2, ko:"정현파 입력으로부터 얻어지는 DC 레벨은 전파 정류라는 과정을 사용하여 100% 향상시킬 수 있다.",
+  {n:29, ch:2, lv:"중", pt:3, ko:"정현파 입력으로부터 얻어지는 DC 레벨은 전파 정류라는 과정을 사용하면 100% 향상될 수 있다.",
    en:"The dc level obtained from a sinusoidal input can be improved 100% using a process called full-wave rectification."},
-  {n:30, ch:2, ko:"한 주기 동안 축 위의 면적이 반파 정류의 두 배이므로 DC 레벨 또한 두 배가 된다.",
-   en:"Since the area above the axis for one full cycle is now twice that obtained for a half-wave system, the dc level has also been doubled."},
+  {n:30, ch:2, lv:"상", pt:4, ko:"클리퍼는 특정한 신호를 만들거나 회로에 인가되는 전압을 제한하기 위해 입력신호의 일부를 잘라내는 회로이다.",
+   en:"Clippers are networks that “clip” away part of the applied signal either to create a specific type of signal or to limit the voltage that can be applied to a network."},
+  {n:31, ch:2, lv:"하", pt:2, ko:"클램퍼는 입력신호를 다른 DC 레벨로 이동시켜 고정하는 회로이다.",
+   en:"Clampers are networks that “clamp” the input signal to a different dc level."},
 ];
 
+const MIDTERM_RECOMMEND = [1,4,8,9,11,15,18,20,23,26,27,28,29,30,31];
+
 const MIDTERM_TERMS = [
-  "semiconductor", "conductivity", "covalent bonding", "intrinsic", "extrinsic",
-  "doping", "valence electron", "majority carrier", "minority carrier", "conventional flow",
-  "depletion region", "bias", "forward-bias", "reverse-bias", "breakdown potential",
-  "equivalent circuit", "ideal diode", "load line", "rectifier", "half-wave rectification",
-  "full-wave rectification", "recombination",
-];
+  "extrinsic", "doping", "pentavalent", "valence electron", "donor atom", "electrically neutral",
+  "conventional flow", "majority carrier", "minority carrier", "depletion region", "bias",
+  "reverse saturation current", "forward-bias", "reverse-bias", "breakdown potential",
+  "dynamic resistance", "recombination", "infrared", "load line", "rectification",
+  "half-wave rectification", "full-wave rectification", "clipper", "clamper",
+]
 
 function midtermGroup(chNo, title){
   const list = MIDTERM_EN.filter(x=>x.ch===chNo);
@@ -4663,7 +4667,7 @@ function midtermGroup(chNo, title){
     <h3>${title} <span style="font-weight:600;color:var(--muted)">· ${list.length}문장</span></h3>
     ${list.map(x=>`
       <div class="quiz-item">
-        <div class="quiz-q"><span class="quiz-no">${x.n}</span><span>${x.ko}</span></div>
+        <div class="quiz-q"><span class="quiz-no">${x.n}</span><span>${x.ko} <span class="ch-badge" style="margin-left:6px">${x.lv} · ${x.pt}점</span>${MIDTERM_RECOMMEND.includes(x.n)?' <span class="ch-badge" style="margin-left:4px">★ 출제 추천</span>':''}</span></div>
         <details class="qa"><summary>영어 문장 보기</summary><div class="a en-sent">${x.en}</div></details>
       </div>`).join("")}
   </div>`;
@@ -4674,15 +4678,15 @@ function renderMidtermEn(){
   <span class="ch-eyebrow">부가 자료</span>
   <h2 class="ch-title">중간고사 영어 문장</h2>
   <p class="ch-sub">한글을 보고 영어 문장을 직접 써 보기</p>
-  <p class="mat-section-note">1장과 2장에서 꼭 알아야 할 핵심 문장 <b>30개</b>입니다.
+  <p class="mat-section-note">1장과 2장에서 꼭 알아야 할 핵심 문장 <b>31개</b>입니다.
   반도체 → 도핑 → 캐리어 → p-n 접합 → 다이오드 모델로 이어지는 1장의 흐름과,
-  부하선 → 정류로 이어지는 2장의 흐름을 따라 정리했습니다.</p>
+  부하선 → 정류 → 클리퍼·클램퍼로 이어지는 2장의 흐름을 따라 정리했습니다.</p>
 
   <div class="callout">
     <h3>📖 이렇게 쓰세요</h3>
-    <p>① 한글 문장을 보고 <b>먼저 영어로 써 본 다음</b> 버튼을 누르세요. 눈으로만 읽으면 시험장에서 손이 안 움직입니다.<br>
+    <p>난이도·배점: <b>하 2점 · 중 3점 · 상 4점</b>. <b>★ 출제 추천</b> 표시 문장(15개)부터 먼저 익히세요.<br>① 한글 문장을 보고 <b>먼저 영어로 써 본 다음</b> 버튼을 누르세요. 눈으로만 읽으면 시험장에서 손이 안 움직입니다.<br>
     ② 틀린 곳은 <b>전공 용어인지 문법인지</b> 구분해 두세요. 용어는 철자까지 정확히 외워야 하고, 관사나 전치사는 반복해서 익히면 됩니다.<br>
-    ③ 한 번에 30개를 다 보려 하지 말고 <b>하루 5~6문장씩</b> 나눠서, 그 대신 며칠에 걸쳐 여러 번 돌려 보세요.</p>
+    ③ 한 번에 31개를 다 보려 하지 말고 <b>하루 5~6문장씩</b> 나눠서, 그 대신 며칠에 걸쳐 여러 번 돌려 보세요.</p>
   </div>
 
   ${midtermGroup(1, "Chapter 1 · Semiconductor Diodes")}
