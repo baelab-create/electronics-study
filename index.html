@@ -569,6 +569,15 @@
   .diode-notes .mat-table th[scope="row"]{white-space:normal;}
   @media(max-width:1100px){.diode-notes .dn-grid{grid-template-columns:1fr;}.diode-notes figure svg{max-width:360px; margin:auto;}}
   @media(max-width:480px){.diode-notes .card{padding:20px 16px;}.diode-notes h2{font-size:22px;}}
+
+  /* ───────── 중간고사 준비 ───────── */
+  .goto-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+  .goto-link{border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:7px 13px;
+    font-size:13px; font-weight:700; color:var(--accent-ink); cursor:pointer; font-family:inherit;}
+  .goto-link:hover{border-color:var(--accent);}
+  .prep-en{font-style:italic; background:#f4f6fb; border-left:3px solid var(--accent); padding:10px 14px;
+    border-radius:0 8px 8px 0; margin:10px 0 12px; font-size:14px; line-height:1.6;}
+  .prep-list{padding-left:20px;} .prep-list li{margin:6px 0; line-height:1.7; font-size:14.5px;}
 </style>
 </head>
 <body>
@@ -621,6 +630,7 @@ const CHAPTERS = [
 
 /* 고정 자료 페이지 (모든 학생에게 보임) */
 const MATERIALS = [
+  {id:"midterm-prep", title:"중간고사 준비", sub:"범위·시험 방식·핵심 정리 한 페이지", icon:"🎯", ch:"Ch.1·2"},
   {id:"midterm-en", title:"중간고사 영어 문장", sub:"한글을 보고 영어로 써 보기", icon:"🔤", ch:"Ch.1·2"},
   {id:"midterm-essay", title:"중간고사 논술형", sub:"반도체 안과 회로를 이어서 쓰기", icon:"🖊️", ch:"Ch.1·2"},
   {id:"yt-library", title:"유튜브 자료실", sub:"수업 참고 영상 모음", icon:"▶️", ch:"전 챕터"},
@@ -1566,6 +1576,7 @@ const NODE_TABLE = [
 ];
 
 function renderMaterial(m){
+  if(m.id === "midterm-prep") return renderMidtermPrep();
   if(m.id === "yt-library") return renderYtLibrary();
   if(m.id === "diode-inside") return renderDiodeInside();
   if(m.id === "electricity-flow") return renderElectricityFlow();
@@ -4581,6 +4592,223 @@ function renderSimulator(){
   </div>`;
 }
 
+/* ───────── 고정 자료: 중간고사 준비 (한 페이지 정리) ───────── */
+function prepGo(items){
+  return `<div class="goto-row">${items.map(([id,label])=>
+    id.startsWith("ch:")
+      ? `<button class="goto-link" data-goto-ch="${id.slice(3)}">${label}</button>`
+      : `<button class="goto-link" data-goto="${id}">${label}</button>`).join("")}</div>`;
+}
+function prepCard(title, body, go){
+  return `<div class="card"><h3>${title}</h3>${body}${go ? prepGo(go) : ""}</div>`;
+}
+function prepCheck(q, a){
+  return `<div class="quiz-item"><p><b>스스로 확인:</b> ${q}</p><details class="qa"><summary>답 확인</summary><div class="a">${a}</div></details></div>`;
+}
+
+function renderMidtermPrep(){
+  const objs = n => CHAPTERS.find(c=>c.n===n).objs.map(o=>`<li>${o}</li>`).join("");
+  return `
+  <span class="ch-eyebrow">중간고사</span>
+  <h2 class="ch-title">🎯 중간고사 준비</h2>
+  <p class="ch-sub">범위 · 시험 방식 · 핵심 정리를 한 페이지에</p>
+  <p class="mat-section-note">수업의 <b>시험 범위 리뷰</b> 내용을 바탕으로, 학습자료실에 흩어져 있던 자료 중 시험에 필요한 것만 교재 순서대로 모았습니다.
+  각 절 아래의 버튼을 누르면 자세한 자료로 이동합니다. 기준은 언제나 <b>교재(Boylestad 1·2장)</b>입니다.</p>
+
+  ${prepCard("📌 시험 안내 — 수업에서 말한 것", `
+    <ul class="prep-list">
+      <li><b>범위</b>: 교재 <b>Chapter 1 (Semiconductor Diodes)</b>와 <b>Chapter 2 (Diode Applications)</b>.</li>
+      <li><b>출제 기준</b>: 각 장의 <b>Chapter Objectives</b>. 교재 저자들이 “이 장을 배웠다면 알아야 할 것”으로 정리한 목록입니다(아래 카드).</li>
+      <li><b>영어 문장 쓰기</b>: <b>‘중간고사 영어 문장’ 문제은행(31문장)에서만</b> 출제합니다. 반마다 다른 문제가 나갑니다.</li>
+      <li><b>단답형·논술형</b>: <b>한글로</b> 설명해서 씁니다. 논술형은 한 절만 묻지 않고 <b>두세 절을 이어서</b> 묻는 형태를 대비하세요.</li>
+      <li><b>채점</b>: 모든 답안을 같은 기준으로 꼼꼼히 채점합니다. 영어 문장은 <b>관사(a, an, the)·전치사·하이픈·철자</b> 하나까지 정확히 써야 합니다.</li>
+      <li><b>이름과 학번</b>을 쓰지 않으면 점수를 줄 수 없어 <b>0점</b>입니다. 시험지를 받으면 가장 먼저 쓰세요.</li>
+      <li>공부하다 좋은 논술형 문제를 직접 만들었다면 <b>공지사항</b>의 안내대로 조교에게 제보할 수 있습니다.</li>
+    </ul>`, [["midterm-en","🔤 영어 문장 31개"],["midterm-essay","🖊️ 논술형 예시"]])}
+
+  ${prepCard("🗺️ 출제 기준 — Chapter Objectives", `
+    <p class="mat-section-note">아래 목록을 보고 각 항목을 <b>한두 문장으로 설명</b>할 수 있으면 준비가 된 것입니다.</p>
+    <p><b>Chapter 1 · Semiconductor Diodes</b></p><ul class="prep-list">${objs(1)}</ul>
+    <p><b>Chapter 2 · Diode Applications</b></p><ul class="prep-list">${objs(2)}</ul>`,
+    [["ch:1","📄 Ch.1 교재 PDF"],["ch:2","📄 Ch.2 교재 PDF"]])}
+
+  <h2 style="margin:34px 0 4px">Chapter 1 · Semiconductor Diodes</h2>
+
+  ${prepCard("1.1 Introduction · 역사의 흐름", `
+    <ul class="prep-list">
+      <li><b>1904–1947 진공관의 시대</b> → <b>1947</b> 벨 연구소의 트랜지스터 → <b>1958</b> 최초의 집적회로(IC).</li>
+      <li><b>1965 무어의 법칙</b>: IC 한 개에 들어가는 트랜지스터 수는 약 <b>2년마다 2배</b>가 된다는 고든 무어의 예측.</li>
+      <li>소자는 계속 작아지고 빨라졌지만, <b>기본 원리는 거의 변하지 않았다</b>는 것이 1장 도입부의 메시지입니다.</li>
+    </ul>`, [["semi-history","📘 반도체 발전사"]])}
+
+  ${prepCard("1.2 Semiconductor Materials · 반도체의 정의", `
+    <div class="prep-en">Semiconductors are a special class of elements having a conductivity between that of a good conductor and that of an insulator.</div>
+    <ul class="prep-list">
+      <li>반도체는 <b>도체와 절연체 사이의 전도도</b>를 갖는 특별한 원소입니다.</li>
+      <li>가장 많이 쓰는 세 재료: <b>Ge(게르마늄), Si(실리콘), GaAs(갈륨비소)</b>. Si와 Ge는 단결정, GaAs는 Ga(3가)와 As(5가)로 이루어진 화합물 반도체입니다.</li>
+    </ul>`)}
+
+  ${prepCard("1.3 Covalent Bonding · Intrinsic Materials", `
+    <div class="prep-en">This bonding of atoms, strengthened by the sharing of electrons, is called covalent bonding.</div>
+    <ul class="prep-list">
+      <li><b>공유결합</b>: 이웃 원자끼리 최외각 전자(가전자)를 <b>공유</b>하여 결합합니다. 전자끼리는 서로 밀어내지만, 양쪽 원자핵(양성자)이 공유 전자를 끌어당기는 힘이 더 커서 원자들이 덩어리를 이룹니다.</li>
+      <li><b>Intrinsic(진성)</b>: 현대 기술로 가능한 한 불순물을 줄여 정제한 반도체. 상온의 진성 Si에도 1 cm³당 약 <b>1.5 × 10¹⁰개</b>의 자유 캐리어가 있습니다.</li>
+      <li><b>Free state</b>: 가전자가 빛(광자)이나 열에서 <b>충분한 운동에너지</b>를 얻으면 공유결합을 끊고 자유 전자가 됩니다. 상온(room temperature, 약 25 °C)도 원자 입장에서는 이런 에너지를 주는 환경(surrounding medium)입니다.</li>
+      <li><b>상대 이동도 μ<sub>n</sub></b>(cm²/V·s): Si 1500 · Ge 3900 · GaAs 8500. 이동도가 클수록 빠른 소자에 유리합니다.</li>
+    </ul>
+    ${prepCheck("Si 원자 하나는 몇 개의 가전자를 가지며, 이웃과 몇 개의 공유결합을 만드나요?","가전자 <b>4개</b>, 이웃 원자 4개와 <b>4개의 공유결합</b>을 만듭니다.")}`,
+    [["atom-model","⚛️ 원자모델"],["electricity-flow","⚡ 전기는 흐르지 않는다"],["forces","🌌 자연계의 네 가지 힘"]])}
+
+  ${prepCard("1.4 Energy Levels · 에너지 밴드", `
+    <ul class="prep-list">
+      <li>교재는 <b>보어의 원자 모델</b>과 <b>에너지 밴드</b>로 설명합니다. 현대 물리의 정확한 모델은 아니지만, 전자소자의 현상을 설명하고 예측하는 데 충분하기 때문입니다.</li>
+      <li><b>가전자대(valence band)</b>의 전자가 <b>밴드갭 E<sub>g</sub></b>만큼의 에너지를 얻으면 <b>전도대(conduction band)</b>로 올라가 자유 전자가 됩니다.</li>
+      <li>E<sub>g</sub>: <b>Ge 0.67 eV · Si 1.1 eV · GaAs 1.43 eV</b>. 절연체는 E<sub>g</sub> &gt; 5 eV, 도체는 밴드가 겹쳐 있습니다.</li>
+      <li>절연체는 전기가 <b>절대 안 흐르는 물질이 아니라</b>, 결합을 끊는 데 <b>아주 큰 에너지가 필요한</b> 물질입니다.</li>
+      <li>1 eV = 1.6 × 10⁻¹⁹ J (W = QV).</li>
+    </ul>`, [["atom-model","⚛️ 원자모델"],["led-color","💡 LED는 왜 색깔이 다른가"]])}
+
+  ${prepCard("1.5 n-Type and p-Type Materials · 도핑과 캐리어", `
+    <div class="prep-en">A semiconductor material that has been subjected to the doping process is called an extrinsic material.</div>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th></th><th>n형</th><th>p형</th></tr></thead>
+      <tbody>
+        <tr><td>넣는 불순물</td><td>5가: 안티몬(Sb)·비소(As)·인(P)</td><td>3가: 붕소(B)·갈륨(Ga)·인듐(In)</td></tr>
+        <tr><td>불순물 이름</td><td><b>donor</b> (전자를 줌)</td><td><b>acceptor</b> (전자를 받음)</td></tr>
+        <tr><td>다수 캐리어</td><td>전자</td><td>정공</td></tr>
+        <tr><td>소수 캐리어</td><td>정공</td><td>전자</td></tr>
+        <tr><td>전체 전하</td><td colspan="2"><b>둘 다 전기적으로 중성</b> — 양성자 수와 전자 수가 같기 때문</td></tr>
+      </tbody></table></div>
+    <ul class="prep-list">
+      <li><b>Electron vs hole flow</b>: 전자가 빈 자리를 채우며 한쪽으로 가면 정공은 반대쪽으로 이동합니다. 교재는 <b>정공 흐름 방향 = 관습적 전류(conventional flow)</b>를 씁니다.</li>
+      <li><b>다수·소수는 상대적인 말</b>입니다. 같은 전자라도 n형에서는 다수, p형에서는 소수 캐리어입니다. 큰 전류는 다수 캐리어가 만듭니다.</li>
+    </ul>
+    ${prepCheck("n형 반도체에 자유 전자가 아주 많은데도 왜 음(−)으로 대전되지 않나요?","도너 원자의 원자핵에 그만큼 양성자가 더 있어서, 전체 양성자 수와 전자 수가 같기 때문입니다. n형도 p형도 <b>전기적으로 중성</b>입니다.")}`,
+    [["hole","🕳️ 정공은 진짜 입자인가"],["discovery","🔦 다이오드는 발명되지 않았다"]])}
+
+  ${prepCard("1.6 Semiconductor Diode · 세 가지 바이어스", `
+    <ul class="prep-list">
+      <li>n형과 p형을 <b>그냥 붙이면</b> 첫 번째 고체 소자인 반도체 다이오드가 됩니다. <b>바이어스(bias)</b>는 반응을 보기 위해 두 단자에 거는 외부 전압입니다.</li>
+      <li><b>무바이어스 (V<sub>D</sub> = 0 V)</b>: 접합 부근의 전자와 정공이 결합해 <b>드러난 양·음이온만 남은 영역 = 공핍층(depletion region)</b>이 생깁니다. 소수·다수 캐리어 흐름이 상쇄되어 <b>순전류 0</b>.</li>
+      <li><b>역방향 (n에 ＋, p에 −)</b>: 공핍층이 <b>넓어져</b> 다수 캐리어 흐름은 0. 소수 캐리어 흐름만 남은 작은 전류가 <b>역포화전류 I<sub>s</sub></b>입니다.</li>
+      <li><b>순방향 (p에 ＋, n에 −)</b>: 공핍층이 <b>좁아져</b> 다수 캐리어가 대량으로 넘어가며 전류가 <b>지수적으로</b> 증가합니다.</li>
+      <li><b>쇼클리 방정식</b>: I<sub>D</sub> = I<sub>s</sub>(e<sup>V<sub>D</sub>/nV<sub>T</sub></sup> − 1), 열전압 V<sub>T</sub> ≈ 26 mV (27 °C), 교재는 n = 1.</li>
+      <li><b>항복 영역</b>: 역전압이 <b>항복 전위 V<sub>BV</sub></b>에 이르면 역전류가 급증합니다. 일반 다이오드는 이 영역을 피해야 하며, 그 직전까지의 최대 역전압이 <b>PIV(PRV) 정격</b>입니다.</li>
+      <li><b>무릎 전압 V<sub>K</sub></b>: Ge 0.3 V · Si 0.7 V · GaAs 1.2 V.</li>
+      <li><b>온도</b>: Si 다이오드의 순방향 특성은 1 °C 오를 때마다 약 <b>2.5 mV 왼쪽</b>으로 이동하고, 역전류는 온도가 오르면 크게 늘어납니다(실제 역전류는 약 10 °C마다 2배).</li>
+    </ul>
+    ${prepCheck("역방향 바이어스에서 공핍층이 넓어지는데도 전류가 완전히 0이 아닌 이유는?","공핍층이 넓어져 막히는 것은 <b>다수 캐리어</b>의 흐름입니다. 공핍층으로 들어오는 <b>소수 캐리어</b>는 그대로 넘어가므로 작은 역포화전류 I<sub>s</sub>가 흐릅니다.")}`,
+    [["diode-inside","🧲 다이오드의 안쪽"],["why-07v","📈 다이오드는 왜 0.7V인가"],["datasheet","📄 데이터시트 읽는 법"]])}
+
+  ${prepCard("1.7–1.9 이상 vs 실제 · 저항 · 등가회로", `
+    <ul class="prep-list">
+      <li><b>이상적인 다이오드</b>: 도통 영역에서는 <b>단락(short)</b>, 비도통 영역에서는 <b>개방(open)</b>.</li>
+      <li>다이오드의 특성곡선은 <b>비선형</b>이라, 동작점이 바뀌면 <b>저항도 바뀝니다</b>.</li>
+    </ul>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>저항</th><th>정의</th><th>언제 쓰나</th></tr></thead>
+      <tbody>
+        <tr><td>DC (static) R<sub>D</sub></td><td>R<sub>D</sub> = V<sub>D</sub> / I<sub>D</sub></td><td>한 동작점(Q점)의 비율</td></tr>
+        <tr><td>AC (dynamic) r<sub>d</sub></td><td>r<sub>d</sub> = ΔV<sub>d</sub>/ΔI<sub>d</sub> ≈ 26 mV / I<sub>D</sub></td><td>Q점 부근의 작은 신호 — Q점의 <b>접선</b></td></tr>
+        <tr><td>Average AC r<sub>av</sub></td><td>r<sub>av</sub> = ΔV<sub>d</sub>/ΔI<sub>d</sub> (두 점 사이)</td><td>큰 신호 — 두 점을 잇는 직선</td></tr>
+      </tbody></table></div>
+    <ul class="prep-list">
+      <li><b>등가회로</b>: 특정 동작 영역에서 소자의 실제 단자 특성을 가장 잘 나타내도록 고른 소자 조합. 정밀한 순서대로 <b>구분 선형(이상 다이오드 + V<sub>K</sub> + r<sub>av</sub>) → 간략화(이상 다이오드 + 0.7 V) → 이상 모델</b>.</li>
+    </ul>`, [["ch:1","📄 Ch.1 탭의 ‘추가 설명 자료’ (저항 그래프)"]])}
+
+  ${prepCard("1.15 Zener Diodes · 1.16 LED", `
+    <ul class="prep-list">
+      <li><b>제너 다이오드</b>: 일반 다이오드에서는 피해야 할 항복 영역을 <b>의도적으로 이용</b>하는 소자. 제너 영역에서는 <b>기호의 화살표와 반대 방향</b>으로 도통합니다.</li>
+      <li><b>애벌랜치</b>: 역전압이 커지면 소수 캐리어의 속도·운동에너지가 커져 원자와 충돌하며 가전자를 떼어내고(이온화), 새 캐리어가 다시 충돌하며 전류가 눈사태처럼 늘어납니다.</li>
+      <li>도핑을 높이면 V<sub>Z</sub>가 낮아지고, 약 5 V 이하에서는 <b>제너 항복</b>이 기여합니다. 시판 제너는 1.8–200 V, 주로 실리콘.</li>
+      <li><b>LED</b>: 순방향에서 접합 부근의 전자·정공이 <b>재결합</b>할 때 에너지가 열과 빛(광자)으로 나옵니다. Si·Ge는 대부분 <b>열</b>, <b>GaAs는 적외선</b>.</li>
+      <li>빛의 파장(색)은 재료의 <b>밴드갭</b>으로 정해집니다: <b>λ = hc / E<sub>g</sub></b> (GaAs 1.43 eV → 869 nm).</li>
+    </ul>`, [["diode-inside","🧲 다이오드의 안쪽 (제너)"],["led-color","💡 LED는 왜 색깔이 다른가"]])}
+
+  <h2 style="margin:34px 0 4px">Chapter 2 · Diode Applications</h2>
+
+  ${prepCard("2.2 Load-Line Analysis · 부하선", `
+    <ul class="prep-list">
+      <li><b>다이오드 특성곡선</b>은 제조사가 정해 주는 것이고, <b>회로(E, R)</b>는 설계자가 고르는 것입니다. 두 조건을 <b>동시에 만족</b>하는 점을 찾는 것이 회로를 푸는 것입니다.</li>
+      <li>KVL에서 나온 직선이 <b>부하선</b>입니다. 세로축 교점 I<sub>D</sub> = E/R이 <b>부하 R로 정해지기 때문에</b> 부하선이라고 부릅니다. 가로축 교점은 V<sub>D</sub> = E.</li>
+      <li>특성곡선과 부하선의 <b>교점 = Q점(동작점)</b>. R이나 E를 바꾸면, 또는 온도가 바뀌어 특성곡선이 움직이면 Q점이 이동합니다.</li>
+    </ul>
+    <div class="prep-en">The straight line is called a load line because the intersection on the vertical axis is defined by the applied load R.</div>`,
+    [["loadline","📐 부하선은 왜 직선인가"]])}
+
+  ${prepCard("2.3–2.4 직렬·병렬 회로 · 다이오드 상태 판별", `
+    <ul class="prep-list">
+      <li>① 다이오드를 잠시 <b>저항으로 바꿔 생각</b>해 전류 방향을 본다 → ② 그 방향이 화살표와 같고 전압이 충분하면 <b>ON</b>(Si는 0.7 V 전압원), 아니면 <b>OFF</b>(개방) → ③ 가정한 상태로 풀고 맞는지 확인.</li>
+      <li>Si 다이오드가 켜지려면 걸리는 전압이 최소 <b>0.7 V</b>는 되어야 합니다.</li>
+    </ul>`)}
+
+  ${prepCard("2.6–2.7 Rectification · 정류", `
+    <div class="prep-en">The process of removing one-half the input signal to establish a dc level is called half-wave rectification.</div>
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th>정류기</th><th>출력 DC (이상)</th><th>Si (V<sub>K</sub> 고려)</th><th>필요 PIV</th></tr></thead>
+      <tbody>
+        <tr><td>반파</td><td>V<sub>dc</sub> = 0.318 V<sub>m</sub></td><td>0.318(V<sub>m</sub> − V<sub>K</sub>)</td><td>PIV ≥ V<sub>m</sub></td></tr>
+        <tr><td>전파 (브리지)</td><td>V<sub>dc</sub> = 0.636 V<sub>m</sub></td><td>0.636(V<sub>m</sub> − 2V<sub>K</sub>)</td><td>PIV ≥ V<sub>m</sub></td></tr>
+        <tr><td>전파 (중간탭)</td><td>V<sub>dc</sub> = 0.636 V<sub>m</sub></td><td>—</td><td>PIV ≥ 2V<sub>m</sub></td></tr>
+      </tbody></table></div>
+    <ul class="prep-list">
+      <li><b>정류</b>: 평균값이 0인 교류를 DC 레벨을 갖는 파형으로 바꾸는 과정. 반파는 입력의 절반을 버리고, 전파는 음의 반주기도 뒤집어 써서 DC 레벨이 <b>100% 향상(2배)</b>됩니다.</li>
+      <li>정류에 쓰이는 다이오드를 <b>정류기(rectifier)</b>라고 부릅니다.</li>
+    </ul>`, [["charger","🔌 USB 충전기 안을 열어보면"]])}
+
+  ${prepCard("2.8–2.9 Clippers · Clampers", `
+    <div class="mat-table-wrap"><table class="mat-table">
+      <thead><tr><th></th><th>클리퍼 (Clipper)</th><th>클램퍼 (Clamper)</th></tr></thead>
+      <tbody>
+        <tr><td>하는 일</td><td>입력 신호의 일부를 <b>잘라낸다</b></td><td>파형 모양은 그대로 두고 <b>DC 레벨을 옮긴다</b></td></tr>
+        <tr><td>구성</td><td>다이오드 + 저항 (+ 직류 전원)</td><td>다이오드 + 저항 + <b>커패시터</b></td></tr>
+        <tr><td>쓰임</td><td>과전압 보호, 파형 정형</td><td>DC 레벨 복원·이동</td></tr>
+        <tr><td>확인할 것</td><td>잘리는 기준 전압</td><td>출력의 총 진폭(swing) = 입력의 총 진폭, τ = RC가 충분히 클 것 (5τ로 완전 충·방전)</td></tr>
+      </tbody></table></div>
+    <ul class="prep-list">
+      <li><b>정류기와 클리퍼의 차이</b>: 정류기는 AC를 DC로 바꾸는 것이 목적이고, 클리퍼는 <b>원하는 기준 전압에서 원하는 부분</b>을 잘라내는 것이 목적입니다.</li>
+    </ul>`, [["charger","🔌 USB 충전기 안을 열어보면"],["simulator","🧪 시뮬레이터로 확인하기"]])}
+
+  ${prepCard("2.11 Zener Diodes · 제너 응용 (Chapter Objective)", `
+    <ul class="prep-list">
+      <li>해석 방법: ① 제너를 회로에서 떼고 그 자리의 전압 V를 구한다 → ② <b>V ≥ V<sub>Z</sub></b>이면 ON(V<sub>Z</sub> 전지로 대체), 아니면 OFF(개방).</li>
+      <li>ON이면 출력은 V<sub>Z</sub>로 유지되고, 직렬 저항이 남는 전압을 받습니다. 제너는 <b>기준 전압</b>과 <b>보호 소자</b>로 쓰입니다.</li>
+    </ul>`, [["diode-inside","🧲 다이오드의 안쪽 (제너 강의 10번)"]])}
+
+  ${prepCard("🔗 논술형 대비 — 절을 이어서 설명해 보기", `
+    <p class="mat-section-note">논술형은 두세 절을 이어서 묻습니다. 먼저 스스로 써 본 뒤 ‘핵심 연결’을 열어 빠진 고리가 없는지 확인하세요.</p>
+    ${[
+      ["실리콘으로는 LED를 만들지 않는 이유를 공유결합(1.3)·에너지 밴드(1.4)·LED(1.16)를 연결해 설명하라.",
+       "가전자가 결합을 끊고 전도대로 오른 전자가 재결합하며 E<sub>g</sub>만큼 에너지를 내놓는다 → Si는 그 에너지가 대부분 <b>열</b>로 나온다 → 빛의 색은 λ = hc/E<sub>g</sub>로 정해지는데 Si(1.1 eV)는 1130 nm로 가시광 밖이다."],
+      ["n형·p형은 모두 전기적으로 중성인데, 접합하면 왜 이온이 드러난 공핍층이 생기는지 설명하라. (1.5 + 1.6)",
+       "도핑으로 각각 다수 캐리어가 많아도 중성 → 접합하는 순간 경계 부근의 전자·정공이 결합하여 자유 캐리어가 사라짐 → 남은 도너(+)·어셉터(−) 이온이 드러남 = 공핍층."],
+      ["다수·소수 캐리어의 개념(1.5)을 이용해 역방향 특성(1.6)과 제너 다이오드의 동작(1.15)을 설명하라.",
+       "역방향: 공핍층이 넓어져 다수 캐리어 흐름 0, 소수 캐리어만 흘러 I<sub>s</sub> → 역전압↑ 소수 캐리어 속도↑ → 충돌 이온화 → 애벌랜치 → 이 영역을 안전하게 쓰도록 만든 것이 제너."],
+      ["다이오드 저항이 일정하지 않은 이유(1.6, 1.8)와 부하선으로 동작점을 찾는 방법(2.2)을 연결하라.",
+       "특성곡선이 비선형이라 동작점마다 V/I와 기울기가 다름 → 소자 특성(곡선)과 회로 조건(KVL 직선)을 동시에 만족하는 교점 = Q점 → 그 Q점에서 R<sub>D</sub>, r<sub>d</sub>를 구한다."],
+      ["등가회로(1.9)의 0.7 V가 반파 정류 출력(2.6)에 주는 영향을 설명하라.",
+       "다이오드는 입력이 0.7 V를 넘어야 켜짐 → 출력 최댓값이 V<sub>m</sub> − 0.7 V → V<sub>dc</sub> ≈ 0.318(V<sub>m</sub> − V<sub>K</sub>). V<sub>m</sub>이 작을수록 영향이 크다."],
+      ["정류기·클리퍼·클램퍼를 목적과 출력 파형으로 비교하라. (2장)",
+       "정류기: AC→DC(반파/전파) · 클리퍼: 기준 전압 이상/이하를 잘라냄(보호·정형) · 클램퍼: 모양과 진폭은 그대로, DC 레벨만 이동(커패시터 필요)."],
+    ].map(([q,a],i)=>`<div class="quiz-item"><p><b>Q${i+1}.</b> ${q}</p><details class="qa"><summary>핵심 연결 보기</summary><div class="a">${a}</div></details></div>`).join("")}`,
+    [["midterm-essay","🖊️ 논술형 예시 더 보기"]])}
+
+  ${prepCard("✅ 시험 직전 체크리스트", `
+    <ul class="prep-list">
+      <li>□ 영어 문장 31개를 <b>손으로</b> 써 봤다 (관사·전치사·하이픈까지: <i>forward-bias</i>, <i>reverse-bias</i>, <i>depletion region</i>).</li>
+      <li>□ Chapter Objectives 각 항목을 한두 문장으로 말할 수 있다.</li>
+      <li>□ 숫자: V<sub>K</sub> 0.3 / 0.7 / 1.2 V · E<sub>g</sub> 0.67 / 1.1 / 1.43 eV · V<sub>T</sub> ≈ 26 mV · r<sub>d</sub> ≈ 26 mV/I<sub>D</sub> · 0.318 V<sub>m</sub> / 0.636 V<sub>m</sub>.</li>
+      <li>□ 무바이어스·역방향·순방향에서 <b>공핍층 폭</b>과 <b>다수·소수 캐리어 흐름</b>을 그림으로 그릴 수 있다.</li>
+      <li>□ 정류기 / 클리퍼 / 클램퍼의 차이를 설명할 수 있다.</li>
+      <li>□ <b>시험지에 이름과 학번</b>부터 쓴다.</li>
+    </ul>`)}
+
+  ${prepCard("📚 더 읽을거리 (시험 범위 밖)", `
+    <p class="mat-section-note">수업에서 소개했지만 중간고사 문제의 직접 범위는 아닌 자료입니다. 이해를 넓히는 용도로 보세요.</p>`,
+    [["yt-library","▶️ 유튜브 자료실"],["inside-phone","📱 내 폰 안에는 뭐가 들어있나"],["chip-industry","🏭 반도체 회사의 종류와 구도"],["smallsignal","〰️ 소신호 등가회로 (Ch.5)"]])}
+  `;
+}
+
 /* ───────── 고정 자료: 중간고사 영어 문장 ───────── */
 const MIDTERM_EN = [
   /* ── Chapter 1. Semiconductor Diodes ── */
@@ -5168,6 +5396,8 @@ function render(){
     const eb = view.querySelector(".ch-eyebrow");
     if(eb && m.ch) eb.insertAdjacentHTML("afterend", `<span class="ch-badge">${m.ch}</span>`);
     setupAccordions(view);
+    view.querySelectorAll("[data-goto]").forEach(b=> b.onclick = ()=>{ current={type:"material",id:b.dataset.goto}; render(); });
+    view.querySelectorAll("[data-goto-ch]").forEach(b=> b.onclick = ()=>{ current={type:"chapter",id:+b.dataset.gotoCh}; render(); });
   }else if(current.type==="chapter"){
     const c = CHAPTERS.find(x=>x.n===current.id) || CHAPTERS[0];
     view.innerHTML = renderChapter(c);
