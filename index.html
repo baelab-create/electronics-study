@@ -773,13 +773,147 @@ function renderChapter(c){
     <ul class="obj-list">${c.objs.map(o=>`<li>${o}</li>`).join("")}</ul>
   </div>
   <iframe class="pdf-frame" src="${c.file}" title="Chapter ${c.n} 미리보기"></iframe>
-  ${c.n === 1 ? renderDiodeNotes() : ""}
+  ${c.n === 1 ? renderDiodeNotes() : c.n === 4 ? renderBjtBiasNotes() : ""}
   ${c.n === 2 ? renderLoadLineNotes() : ""}
   ${c.n === 2 ? renderClipClampNotes() : ""}
   ${c.n === 3 ? renderBjtConfigNotes() : ""}
   ${c.n === 3 ? renderBjtEssay() : ""}`;
 }
 
+
+/* ───────── Chapter 4: BJT 바이어스 회로 공부 자료 ───────── */
+function renderBjtBiasNotes(){
+  const q = (t, a) => `<div class="quiz-item"><p>${t}</p><details class="qa"><summary>생각 정리 포인트</summary><div class="a">${a}</div></details></div>`;
+  return `<section class="diode-notes" aria-labelledby="bjt-notes-title">
+    <span class="ch-eyebrow">CHAPTER 4 · 왜 이 6가지 회로를 배우는가</span>
+    <h2 id="bjt-notes-title" style="margin-top:14px">추가 설명 자료</h2>
+    <p class="dn-lead">Chapter 3의 BJT 원리 → Chapter 4의 DC 바이어스 회로 → Chapter 5의 AC 증폭으로 이어지는 흐름, 그리고 이 흐름으로 만들어지는 논술형 문제</p>
+
+    <div class="card">
+      <h3>01 · 큰 그림: Chapter 1부터 5까지 한 줄로</h3>
+      <div class="mat-table-wrap" role="region" tabindex="0" aria-label="장별 핵심 질문 표"><table class="mat-table">
+        <thead><tr><th scope="col">장</th><th scope="col">핵심 질문</th><th scope="col">다음 장과의 연결</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Ch.1</th><td>PN 접합에서 왜 전류가 흐르는가? (다수·소수 캐리어, 공핍영역, 순·역방향 바이어스)</td><td>BJT 안에는 PN 접합이 두 개 있다</td></tr>
+          <tr><th scope="row">Ch.2</th><td>다이오드 특성을 실제 회로에 어떻게 쓰는가? (정류·클리퍼·클램퍼)</td><td>전원과 저항을 연결하는 실용적 관점</td></tr>
+          <tr><th scope="row">Ch.3</th><td>BJT는 어떻게 전류를 제어하고, 세 단자를 어떻게 쓰는가? (BE 순방향·BC 역방향, CB/CE/CC, α·β)</td><td>그 동작 상태를 실제 회로로 만들어야 한다</td></tr>
+          <tr><th scope="row">Ch.4</th><td>원하는 DC 동작점(Q점)을 어떻게 만들고 안정하게 유지하는가?</td><td>바이어스가 잡힌 회로에 신호를 넣는다</td></tr>
+          <tr><th scope="row">Ch.5</th><td>Q점 주변의 작은 AC 신호는 얼마나 증폭되는가? (이득, 입·출력 임피던스)</td><td>증폭기의 성능과 용도 평가</td></tr>
+        </tbody></table></div>
+      <div class="quote"><b>Chapter 3</b>에서 BJT의 동작 원리와 단자 구성을 배우고, <b>Chapter 4</b>에서 실제 전원과 저항으로 안정적인 DC 동작점을 잡고, <b>Chapter 5</b>에서 그 동작점 주변의 AC 신호가 얼마나 증폭되는지 분석합니다.</div>
+      <p>트랜지스터를 실제 <b>빵판</b>에 꽂는다고 생각해 보세요. BE 접합은 순방향, BC 접합은 역방향이어야 한다는 것은 Chapter 3에서 배웠습니다. 그렇다면 <b>건전지와 저항을 어디에, 얼마짜리로</b> 연결해야 그 상태가 만들어지고, 온도나 β가 바뀌어도 유지될까요? 이것이 Chapter 4입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>02 · 같은 ‘Configuration’인데 기준이 다르다</h3>
+      <div class="mat-table-wrap" role="region" tabindex="0" aria-label="Chapter 3와 4의 구성 비교"><table class="mat-table">
+        <thead><tr><th scope="col">구분</th><th scope="col">Ch.3: CB / CE / CC</th><th scope="col">Ch.4: DC Bias Configuration</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">나누는 기준</th><td>어느 단자를 입력·출력의 <b>공통 기준</b>으로 쓰는가</td><td>어떤 저항·전원·피드백 구조로 <b>DC 동작점</b>을 잡는가</td></tr>
+          <tr><th scope="row">묻는 것</th><td>입력은 어디에 넣고 출력은 어디서 얻는가?</td><td>필요한 DC 전류·전압을 어떻게 만드는가?</td></tr>
+          <tr><th scope="row">예</th><td>Common Base, Common Emitter, Common Collector</td><td>Fixed, Emitter, Voltage-Divider, Collector Feedback</td></tr>
+        </tbody></table></div>
+      <p>두 기준은 <b>조합</b>됩니다. 예를 들어 교재의 기본 Fixed-Bias 회로는 “Fixed-Bias 방식의 <b>CE 회로</b>”입니다.</p>
+      <div class="dn-flow">Ch.3 단자 구성 선택(CE/CC/CB) → Ch.4 DC 바이어스로 Q점 확보 → Ch.5 AC 이득·임피던스 해석</div>
+    </div>
+
+    <div class="card">
+      <h3>03 · Ch.3의 순·역방향 바이어스 = Ch.4의 DC 바이어스</h3>
+      <p>서로 다른 이야기가 아니라 <b>같은 바이어스를 보는 수준이 다를 뿐</b>입니다. Ch.3은 두 PN 접합이 어떤 극성에서 어떻게 동작하는지, Ch.4는 저항과 전원으로 <b>그 조건과 원하는 I<sub>C</sub>, V<sub>CE</sub>를 실제로 만들고 유지</b>하는 방법을 다룹니다.</p>
+      <div class="mat-table-wrap" role="region" tabindex="0" aria-label="BJT 동작 영역"><table class="mat-table">
+        <thead><tr><th scope="col">동작 영역</th><th scope="col">BE 접합</th><th scope="col">BC 접합</th><th scope="col">쓰임</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Active (활성)</th><td>순방향</td><td>역방향</td><td>선형 증폭</td></tr>
+          <tr><th scope="row">Saturation (포화)</th><td>순방향</td><td>순방향</td><td>스위치 ON</td></tr>
+          <tr><th scope="row">Cutoff (차단)</th><td>역방향</td><td>역방향</td><td>스위치 OFF</td></tr>
+        </tbody></table></div>
+      <p>NPN 활성 영역의 전압 관계: <b>V<sub>C</sub> &gt; V<sub>B</sub> &gt; V<sub>E</sub></b>, 실리콘이면 V<sub>BE</sub> ≈ 0.7 V.</p>
+      <p class="calc-note">⚠️ 0.7 V는 ON/OFF의 절대 경계가 아니라 회로 해석용 <b>근삿값</b>입니다. 또 BE가 순방향이라고 늘 증폭기인 것은 아닙니다. BC까지 순방향이 되면 포화입니다. Q점은 V<sub>BE</sub> 하나가 아니라 <b>활성 영역 안의 I<sub>C</sub>와 V<sub>CE</sub></b>로 정해집니다.</p>
+      <p><b>교재 Fig. 3.7·3.8 다시 보기</b>: CB 출력 특성에서 I<sub>E</sub>가 같으면 V<sub>CB</sub>가 크게 변해도 I<sub>C</sub>는 거의 일정합니다(Example 3.1: I<sub>E</sub> = 3 mA → V<sub>CB</sub>가 10 V든 2 V든 I<sub>C</sub> ≈ 3 mA). 이것은 “역바이어스가 필요 없다”는 뜻이 아니라, <b>역바이어스가 유지되는 동안에는 그 크기에 덜 민감하다</b>는 뜻입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>04 · Ch.3 회로도와 Ch.4 Fixed-Bias 회로도가 달라 보이는 이유</h3>
+      <p>Ch.3은 BE 쪽과 CE 쪽에 전원을 따로(V<sub>BB</sub>, V<sub>CC</sub>) 그려 두 전류 경로를 보여 줍니다. Ch.4 Fixed Bias는 <b>하나의 V<sub>CC</sub></b>를 R<sub>B</sub>와 R<sub>C</sub>에 함께 쓰고 이미터를 접지합니다. 그래도 <b>닫힌 경로 두 개</b>는 그대로입니다.</p>
+      <div class="calc">베이스 루프: V<sub>CC</sub> → R<sub>B</sub> → B → E → 접지 &nbsp;⇒&nbsp; <b>V<sub>CC</sub> = I<sub>B</sub>R<sub>B</sub> + V<sub>BE</sub></b><br>
+      컬렉터 루프: V<sub>CC</sub> → R<sub>C</sub> → C → E → 접지 &nbsp;⇒&nbsp; <b>V<sub>CC</sub> = I<sub>C</sub>R<sub>C</sub> + V<sub>CE</sub></b></div>
+      <p class="dn-formula">I<sub>B</sub> = (V<sub>CC</sub> − V<sub>BE</sub>) / R<sub>B</sub> · I<sub>C</sub> ≈ βI<sub>B</sub> · V<sub>CE</sub> = V<sub>CC</sub> − I<sub>C</sub>R<sub>C</sub></p>
+      <div class="calc"><b>예시</b> V<sub>CC</sub> = 12 V, R<sub>B</sub> = 470 kΩ, R<sub>C</sub> = 2 kΩ, β = 100<br>
+      I<sub>B</sub> = 11.3 V / 470 kΩ ≈ <b>24 μA</b> → I<sub>C</sub> ≈ <b>2.4 mA</b> → V<sub>CE</sub> ≈ 12 − 4.8 = <b>7.2 V</b><br>
+      V<sub>E</sub> = 0, V<sub>B</sub> ≈ 0.7 V, V<sub>C</sub> ≈ 7.2 V → V<sub>C</sub> &gt; V<sub>B</sub> &gt; V<sub>E</sub> ✔ 활성 영역</div>
+      <p><b>Q점</b>은 신호가 없을 때의 DC 정지 동작점 (V<sub>CEQ</sub>, I<sub>CQ</sub>)이며, DC 부하선과 특성곡선의 교점입니다. V<sub>CC</sub> = 12 V라고 V<sub>CEQ</sub>를 항상 6 V로 잡는 것은 아닙니다. 신호 크기·부하·소비전력에 따라 달라집니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>05 · Chapter 4의 6가지 회로는 하나의 이야기다</h3>
+      <div class="mat-table-wrap" role="region" tabindex="0" aria-label="6가지 바이어스 회로"><table class="mat-table">
+        <thead><tr><th scope="col">절</th><th scope="col">회로</th><th scope="col">출발 질문</th><th scope="col">핵심</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">4.3</th><td>Fixed Bias</td><td>가장 간단하게 바이어스를 걸면?</td><td>단순하지만 <b>β가 바뀌면 Q점이 크게 흔들림</b></td></tr>
+          <tr><th scope="row">4.4</th><td>Emitter Bias</td><td>β 변화로 I<sub>C</sub>가 흔들리면 어떻게 억제할까?</td><td>이미터 저항 R<sub>E</sub>의 음의 피드백</td></tr>
+          <tr><th scope="row">4.5</th><td>Voltage-Divider Bias</td><td>베이스 전압까지 안정적으로 잡으려면?</td><td>분압 기준전압 + R<sub>E</sub></td></tr>
+          <tr><th scope="row">4.6</th><td>Collector Feedback</td><td>컬렉터의 변화를 베이스로 되돌리면?</td><td>컬렉터 전압을 이용한 음의 피드백</td></tr>
+          <tr><th scope="row">4.7</th><td>Emitter Follower</td><td>출력을 이미터에서 얻으면?</td><td><b>CC</b> 구성의 DC 바이어스, 버퍼 역할</td></tr>
+          <tr><th scope="row">4.8</th><td>Common Base</td><td>입력을 이미터에 넣으면?</td><td><b>CB</b> 구성에도 DC 바이어스가 필요</td></tr>
+        </tbody></table></div>
+      <div class="dn-flow">4.3–4.6 Q점을 어떻게 잡고 안정화할까? → 4.7–4.8 CC·CB 구성은? → Ch.5 AC 이득·임피던스</div>
+      <p class="calc-note">뒤에 나온 회로가 무조건 더 좋은 것은 아닙니다. 설계 조건·저항값·요구 성능에 따라 알맞은 회로가 달라집니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>06 · 4.6 Collector Feedback 자세히</h3>
+      <p>Fixed Bias와 비교하면 차이는 하나입니다. <b>R<sub>B</sub>의 위쪽 끝이 V<sub>CC</sub>가 아니라 컬렉터에 연결</b>됩니다. 트랜지스터와 CE 구성은 같습니다.</p>
+      <div class="dn-flow">β 증가 → I<sub>C</sub> 증가하려 함 → R<sub>C</sub> 전압강하 증가 → V<sub>C</sub> 감소 → R<sub>B</sub>를 통한 I<sub>B</sub> 감소 → I<sub>C</sub> 증가가 일부 억제 (음의 피드백)</div>
+      <p class="calc-note">I<sub>C</sub>가 줄어든다는 뜻이 아니라, <b>Fixed Bias보다 덜 증가</b>한다는 뜻입니다. 이 회로에서 R<sub>C</sub>에는 I<sub>C</sub> + I<sub>B</sub>가 흐릅니다.</p>
+      <div class="calc">V<sub>C</sub> = V<sub>CC</sub> − (I<sub>C</sub> + I<sub>B</sub>)R<sub>C</sub>, &nbsp;I<sub>B</sub> = (V<sub>C</sub> − V<sub>BE</sub>)/R<sub>B</sub>, &nbsp;I<sub>C</sub> = βI<sub>B</sub><br>
+      ⇒ <b>I<sub>B</sub> = (V<sub>CC</sub> − V<sub>BE</sub>) / [R<sub>B</sub> + (β+1)R<sub>C</sub>]</b></div>
+      <p>Fixed Bias의 분모는 R<sub>B</sub>뿐이지만, 여기서는 <b>(β+1)R<sub>C</sub></b>가 더해집니다. β가 커지면 분모도 커져 I<sub>B</sub>가 줄어드는 것이 바로 피드백 효과입니다.</p>
+      <div class="mat-table-wrap" role="region" tabindex="0" aria-label="Fixed Bias와 Collector Feedback 비교"><table class="mat-table">
+        <caption>V<sub>CC</sub> = 12 V, R<sub>B</sub> = 220 kΩ, R<sub>C</sub> = 2 kΩ, V<sub>BE</sub> = 0.7 V (같은 저항값 비교, 같은 초기 Q점은 아님)</caption>
+        <thead><tr><th scope="col">β</th><th scope="col">Fixed Bias I<sub>C</sub></th><th scope="col">Collector Feedback I<sub>C</sub></th></tr></thead>
+        <tbody>
+          <tr><th scope="row">50</th><td>약 2.57 mA</td><td>약 1.75 mA</td></tr>
+          <tr><th scope="row">100</th><td>약 5.14 mA (약 2배)</td><td>약 2.68 mA (약 53% 증가)</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card">
+      <h3>07 · 4.7 Emitter Follower(CC)와 4.8 Common Base(CB)</h3>
+      <p><b>Emitter Follower</b>: 출력을 컬렉터가 아니라 <b>이미터</b>에서 얻는 CC 구성입니다. DC 근사로 V<sub>E</sub> ≈ V<sub>B</sub> − 0.7 V. Ch.5에서 보면 전압 이득은 1에 가깝지만(약간 작음) 입력 임피던스가 높고 출력 임피던스가 낮아 <b>버퍼</b>로 쓰입니다. 모든 증폭기가 전압을 키우려고 있는 것은 아닙니다.</p>
+      <p><b>Common Base</b>: 입력은 이미터, 출력은 컬렉터, 베이스가 공통입니다. 전류 이득 α = I<sub>C</sub>/I<sub>E</sub>는 1보다 조금 작고, 입력 임피던스가 낮아 고주파 회로 등에 쓰입니다. BE 순방향·BC 역방향이라는 <b>내부 동작 조건은 CE와 똑같습니다</b>. 단자를 다르게 쓸 뿐입니다.</p>
+      <p class="calc-note">임피던스: 최대 <b>전력</b> 전달은 R<sub>L</sub> = R<sub>S</sub>(정합)이지만, 일반적인 <b>전압</b> 증폭기는 입력 임피던스를 신호원보다 훨씬 크게 해 전압 손실을 줄입니다. 무엇을 전달하려는지에 따라 조건이 달라집니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>08 · 논술형은 이렇게 만들어진다</h3>
+      <p>공식을 외웠는지보다 <b>여러 장의 개념을 하나의 인과관계로 엮을 수 있는지</b>를 봅니다. 교과서에 나온 회로 여러 개를 놓고, 동작이 왜 다른지 다음 고리로 설명하는 연습을 하세요.</p>
+      <div class="dn-flow">회로의 차이 → 접합 바이어스 → 캐리어 이동 → I<sub>B</sub>·I<sub>C</sub>·V<sub>C</sub> 변화 → Q점 → 안정성 → AC 성능</div>
+      <p><b>캐리어 이동부터 시작하는 문장 예</b>: NPN의 이미터·컬렉터는 N형, 베이스는 P형입니다. BE 접합을 순방향으로 걸면 이미터의 다수 캐리어인 전자가 베이스로 주입되고, 일부는 베이스의 정공과 재결합하지만 대부분은 얇은 베이스를 지나 역바이어스된 BC 접합을 넘어 컬렉터로 모입니다. 그래서 작은 I<sub>B</sub>가 큰 I<sub>C</sub>를 제어합니다.</p>
+      <p class="calc-note">정량 비교를 할 때는 <b>같은 저항값인지, 같은 초기 Q점인지, 활성 영역이 유지되는지</b>를 먼저 밝히세요.</p>
+    </div>
+
+    <div class="card">
+      <h3>09 · 연습 논술형 문제 6개</h3>
+      ${q("<b>Q1.</b> 같은 초기 Q점을 갖도록 설계한 Fixed Bias와 Voltage-Divider Bias 회로에서 β가 증가하면 각각의 I<sub>C</sub>와 Q점이 어떻게 변하는지 비교하고 원인을 설명하시오.",
+          "Fixed: I<sub>B</sub>가 R<sub>B</sub>로 고정 → I<sub>C</sub> ≈ βI<sub>B</sub>가 β에 비례해 증가 → V<sub>CE</sub>·Q점 크게 이동. Voltage-Divider: 분압 기준전압 + R<sub>E</sub> → I<sub>E</sub>↑이면 V<sub>E</sub>↑ → V<sub>BE</sub>·I<sub>B</sub>가 줄어드는 방향(음의 피드백) → 변화가 억제됨.<br>핵심어: Forward Bias, I<sub>B</sub>, β, Emitter Resistor, Negative Feedback, Q-Point")}
+      ${q("<b>Q2.</b> β가 증가해 I<sub>C</sub>가 증가하려 할 때 Collector Feedback 회로에서는 왜 그 증가가 억제되는가? V<sub>C</sub>와 I<sub>B</sub>의 변화를 순서대로 설명하시오.",
+          "I<sub>C</sub>↑ → R<sub>C</sub> 전압강하↑ (I<sub>C</sub>+I<sub>B</sub>) → V<sub>C</sub>↓ → R<sub>B</sub> 양단 전압↓ → I<sub>B</sub>↓ → I<sub>C</sub> 증가 일부 상쇄. 수식으로는 분모의 (β+1)R<sub>C</sub>.")}
+      ${q("<b>Q3.</b> 같은 NPN BJT를 쓰지만 저항·전원 구성이 다른 세 회로의 Q점이 서로 다른 이유를 PN 접합의 캐리어 이동과 외부 회로의 전압·전류 관계로 설명하시오.",
+          "내부(같음): BE 순방향 → 다수 캐리어 주입, BC 역방향 → 컬렉터로 수집, I<sub>C</sub> ≈ βI<sub>B</sub>. 외부(다름): 각 회로의 KVL이 정하는 I<sub>B</sub>와 V<sub>CE</sub>가 달라 Q점이 달라진다. V<sub>BE</sub> ≈ 0.7 V가 같아도 저항값이 바뀌면 Q점이 바뀐다.<br>핵심어: Majority/Minority Carrier, Depletion Region, Forward/Reverse Bias, I<sub>C</sub>, V<sub>CE</sub>")}
+      ${q("<b>Q4.</b> 같은 BJT로 만든 CE, CC, CB 회로의 공통 단자 의미, 입력·출력 위치, DC 바이어스의 목적, 이득과 입·출력 임피던스 특성을 비교하시오. <span class=\"calc-note\">(AC 특성은 Ch.5를 배운 뒤 완성)</span>",
+          "CE: 입력 B, 출력 C — 전압·전류 이득 모두 큼. CC(Emitter Follower): 입력 B, 출력 E — 전압 이득 ≈ 1, 입력 임피던스 높음, 출력 임피던스 낮음(버퍼). CB: 입력 E, 출력 C — α < 1, 입력 임피던스 낮음. 세 구성 모두 내부 조건(BE 순방향·BC 역방향)은 같고, DC 바이어스의 목적은 활성 영역의 Q점 확보.")}
+      ${q("<b>Q5.</b> 두 회로의 V<sub>BE</sub>가 모두 약 0.7 V인데 하나는 선형 증폭이 되고 다른 하나는 출력 파형이 잘린다. BE·BC 접합 상태와 DC 부하선 위 Q점의 위치를 연결해 설명하시오.",
+          "V<sub>BE</sub>가 같아도 Q점이 포화 쪽(BC도 순방향, V<sub>CE</sub> 작음)이나 차단 쪽에 가까우면 신호가 흔들릴 때 활성 영역을 벗어나 파형이 잘린다. 선형 증폭은 BC 역방향이 유지되는 활성 영역 안, 여유 있는 위치의 Q점에서 가능.<br>핵심어: Active, Cutoff, Saturation, Q-Point")}
+      ${q("<b>Q6.</b> Fixed, Emitter, Voltage-Divider, Collector Feedback, Emitter Follower, Common Base 중에서 (a) β 변화에 대한 동작점 안정성이 중요할 때 (b) 높은 입력 임피던스가 필요할 때 (c) 낮은 입력 임피던스를 활용할 때 알맞은 회로를 고르고 이유를 설명하시오.",
+          "(a) R<sub>E</sub>나 컬렉터 피드백이 있는 회로(Voltage-Divider, Emitter Bias, Collector Feedback) — 음의 피드백 (b) Emitter Follower(CC) (c) Common Base. 단, 안정성의 순위는 주어진 회로값과 조건으로 판단할 것.")}
+    </div>
+
+    <div class="card">
+      <h3>10 · 한 문장으로 정리</h3>
+      <div class="quote">Chapter 1~3에서 배운 반도체 내부의 원리를 <b>Chapter 4</b>에서 실제 DC 바이어스 회로로 구현하고 안정화하며, <b>Chapter 5</b>에서 그 회로의 AC 증폭 성능으로 연결합니다. 논술형은 이 <b>원리 → 회로 → 성능</b>의 인과관계를 설명할 수 있는지를 봅니다.</div>
+    </div>
+  </section>`;
+}
 
 /* ───────── Chapter 1: 다이오드 저항 보충 설명 ───────── */
 function diodeResistanceFigure(mode){
