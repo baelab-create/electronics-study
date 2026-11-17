@@ -781,6 +781,174 @@ function renderChapter(c){
 }
 
 
+/* ───────── Chapter 4 회로 그림 ───────── */
+const C4 = {in:"#2a78d6", out:"#e8552d", fb:"#0f9d6e"};
+function c4t(x,y,str,o){ o=o||{};
+  return `<text x="${x}" y="${y}" font-size="${o.fs||13}" font-weight="${o.fw||700}" fill="${o.c||VIZ.ink}" text-anchor="${o.a||"middle"}">${str}</text>`; }
+function c4Bat(x,y,label,flip){
+  /* 세로 전지: 위(+) 긴 판, 아래(−) 짧은 판. y = 중심 */
+  let g=ckW(x,y-26,x,y-6)+ckW(x,y+6,x,y+26);
+  g+=`<line x1="${x-15}" y1="${y-6}" x2="${x+15}" y2="${y-6}" stroke="${VIZ.ink}" stroke-width="2.6"/>`;
+  g+=`<line x1="${x-8}" y1="${y+6}" x2="${x+8}" y2="${y+6}" stroke="${VIZ.ink}" stroke-width="3.4"/>`;
+  g+=c4t(flip?x+20:x-20,y+5,label,{fs:13,a:flip?"start":"end"});
+  return g;
+}
+function c4Hi(x,y,w,h,col){ return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${col}" opacity=".14"/>`; }
+function c4Arrow(x1,y1,x2,y2,col){
+  const a=Math.atan2(y2-y1,x2-x1), L=10;
+  return `<line x1="${x1}" y1="${y1}" x2="${x2-Math.cos(a)*6}" y2="${y2-Math.sin(a)*6}" stroke="${col}" stroke-width="2.4"/>`
+   + `<path d="M${x2} ${y2} L${(x2-L*Math.cos(a-.45)).toFixed(1)} ${(y2-L*Math.sin(a-.45)).toFixed(1)} L${(x2-L*Math.cos(a+.45)).toFixed(1)} ${(y2-L*Math.sin(a+.45)).toFixed(1)} Z" fill="${col}"/>`;
+}
+
+/* 6가지 바이어스 회로 — 한 칸(260×300) */
+function c4Circuit(kind){
+  const tx=150, ty=165, cN=165, bN=124, top=40;
+  let g=`<svg viewBox="0 0 260 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${kind} 회로">`;
+  const vcc=(x1,x2)=> ckW(x1,top,x2,top)+c4t(x2+6,top+5,"V<tspan font-size='9' dy='3'>CC</tspan>",{a:"start"});
+  g+=ckNpn(tx,ty);
+  g+=c4t(cN+10,ty-30,"C",{fs:11,c:VIZ.muted,a:"start"})+c4t(cN+10,ty+40,"E",{fs:11,c:VIZ.muted,a:"start"})+c4t(bN-4,ty-8,"B",{fs:11,c:VIZ.muted,a:"end"});
+  const rc=()=> ckW(cN,top,cN,62)+ckResV(cN,62,46)+ckW(cN,108,cN,ty-25)+c4t(cN+16,90,"R<tspan font-size='9' dy='3'>C</tspan>",{a:"start"});
+  const re=()=> ckW(cN,ty+25,cN,206)+ckResV(cN,206,40)+ckW(cN,246,cN,256)+ckGnd(cN,256)+c4t(cN+16,232,"R<tspan font-size='9' dy='3'>E</tspan>",{a:"start"});
+  const eg=()=> ckW(cN,ty+25,cN,240)+ckGnd(cN,240);
+  const rbTop=(x)=> ckW(x,top,x,58)+ckResV(x,58,50)+ckW(x,108,x,ty)+ckW(x,ty,bN,ty)+ckDot(x,ty);
+  if(kind==="fixed"){
+    g+=vcc(70,cN)+ckDot(cN,top)+rc()+rbTop(70)+eg();
+    g+=c4t(55,88,"R<tspan font-size='9' dy='3'>B</tspan>",{a:"end"});
+  }else if(kind==="emitter"){
+    g+=vcc(70,cN)+ckDot(cN,top)+rc()+rbTop(70)+re();
+    g+=c4t(55,88,"R<tspan font-size='9' dy='3'>B</tspan>",{a:"end"});
+    g+=c4Hi(cN-22,200,60,52,C4.fb);
+  }else if(kind==="vd"){
+    g+=vcc(70,cN)+ckDot(cN,top)+rc()+rbTop(70)+re();
+    g+=ckResV(70,ty+16,46)+ckW(70,ty,70,ty+16)+ckW(70,ty+62,70,248)+ckGnd(70,248);
+    g+=c4t(55,88,"R<tspan font-size='9' dy='3'>1</tspan>",{a:"end"})+c4t(55,ty+44,"R<tspan font-size='9' dy='3'>2</tspan>",{a:"end"});
+    g+=c4Hi(40,50,60,170,C4.fb)+c4Hi(cN-22,200,60,52,C4.fb);
+  }else if(kind==="cf"){
+    g+=vcc(cN,cN)+rc();
+    g+=ckDot(cN,120)+ckW(cN,120,90,120)+ckW(90,120,90,126)+ckResV(90,126,30)+ckW(90,156,90,ty)+ckW(90,ty,bN,ty);
+    g+=c4t(78,146,"R<tspan font-size='9' dy='3'>B</tspan>",{a:"end"});
+    g+=c4Hi(64,112,108,58,C4.fb)+eg();
+  }else if(kind==="ef"){
+    g+=vcc(70,cN)+ckDot(cN,top)+ckW(cN,top,cN,ty-25)+rbTop(70)+re();
+    g+=c4t(55,88,"R<tspan font-size='9' dy='3'>B</tspan>",{a:"end"});
+    g+=ckDot(cN,200)+c4Arrow(cN,200,cN+60,200,C4.out)+c4t(cN+62,192,"출력",{fs:12,c:C4.out});
+  }else if(kind==="cb"){
+    g+=vcc(cN,cN)+rc();
+    g+=ckW(bN,ty,100,ty)+ckGnd(100,ty);
+    g+=ckW(cN,ty+25,cN,206)+ckResV(cN,206,40)+ckW(cN,246,cN,262)+c4t(cN+16,232,"R<tspan font-size='9' dy='3'>E</tspan>",{a:"start"});
+    g+=c4t(cN,282,"−V<tspan font-size='9' dy='3'>EE</tspan>",{fs:13});
+    g+=c4t(78,ty+40,"베이스 접지",{fs:11,c:VIZ.muted});
+  }
+  if(kind!=="ef"){ g+=ckDot(cN,120)+c4Arrow(cN,120,cN+52,120,C4.out)+c4t(cN+56,112,"출력",{fs:12,c:C4.out}); }
+  return g+"</svg>";
+}
+
+function c4SixGrid(){
+  const items=[
+    ["fixed","4.3 Fixed Bias","R<sub>B</sub> 하나로 I<sub>B</sub>를 정한다"],
+    ["emitter","4.4 Emitter Bias","R<sub>E</sub>(초록)가 I<sub>C</sub> 변화를 되돌린다"],
+    ["vd","4.5 Voltage-Divider","R<sub>1</sub>·R<sub>2</sub> 분압 + R<sub>E</sub>"],
+    ["cf","4.6 Collector Feedback","R<sub>B</sub>가 V<sub>CC</sub> 대신 <b>컬렉터</b>에 연결"],
+    ["ef","4.7 Emitter Follower (CC)","출력을 <b>이미터</b>에서 얻는다"],
+    ["cb","4.8 Common Base (CB)","베이스 접지, 입력은 이미터"],
+  ];
+  return `<div class="dn-grid">${items.map(([k,t,d])=>`<figure>${c4Circuit(k)}<figcaption><b>${t}</b><br>${d}</figcaption></figure>`).join("")}</div>
+  <p class="calc-note">초록 음영 = 음의 피드백(안정화)이 일어나는 부품 · 주황 화살표 = 출력 위치. 교재 Fig. 4.2, 4.17, 4.25, 4.34, 4.45, 4.51을 단순화한 개념도입니다.</p>`;
+}
+
+/* Ch.3 그림(전원 2개) vs Ch.4 Fixed Bias(전원 1개) */
+function c4Ch3vsCh4(){
+  let g=`<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chapter 3의 두 전원 회로와 Chapter 4의 한 전원 Fixed Bias 회로 비교">`;
+  /* 왼쪽: Ch.3 */
+  g+=c4t(180,26,"Ch.3 — 전원 2개 (V<tspan font-size='9' dy='3'>BB</tspan><tspan dy='-3'>, V</tspan><tspan font-size='9' dy='3'>CC</tspan><tspan dy='-3'>)</tspan>",{fs:14});
+  g+=ckNpn(200,150);
+  g+=ckW(215,125,215,70)+ckW(215,70,320,70)+ckW(320,70,320,124)+c4Bat(320,150,"V<tspan font-size='9' dy='3'>CC</tspan>",true)+ckW(320,176,320,240);
+  g+=ckW(174,150,130,150)+ckResH(70,150,60)+ckW(40,150,70,150)+ckW(40,150,40,174)+c4Bat(40,200,"",true)+c4t(62,205,"V<tspan font-size='9' dy='3'>BB</tspan>",{a:"start"})+ckW(40,226,40,240);
+  g+=ckW(215,175,215,240)+ckW(40,240,320,240);
+  g+=c4t(100,138,"R<tspan font-size='9' dy='3'>B</tspan>",{fs:12});
+  g+=`<path d="M60 230 L60 160 L170 160" fill="none" stroke="${C4.in}" stroke-width="3" opacity=".55"/>`;
+  g+=`<path d="M232 230 L232 82 L305 82" fill="none" stroke="${C4.out}" stroke-width="3" opacity=".55"/>`;
+  /* 화살표 */
+  g+=c4Arrow(352,150,408,150,VIZ.muted)+c4t(380,138,"같은 회로",{fs:11,c:VIZ.muted});
+  /* 오른쪽: Ch.4 Fixed */
+  const ox=420;
+  g+=c4t(ox+165,26,"Ch.4 Fixed Bias — V<tspan font-size='9' dy='3'>CC</tspan><tspan dy='-3'> 하나</tspan>",{fs:14});
+  g+=ckW(ox+60,60,ox+235,60)+c4t(ox+245,65,"V<tspan font-size='9' dy='3'>CC</tspan>",{a:"start"});
+  g+=ckNpn(ox+220,170);
+  g+=ckW(ox+235,60,ox+235,78)+ckResV(ox+235,78,46)+ckW(ox+235,124,ox+235,145)+c4t(ox+252,105,"R<tspan font-size='9' dy='3'>C</tspan>",{a:"start"});
+  g+=ckW(ox+60,60,ox+60,78)+ckResV(ox+60,78,50)+ckW(ox+60,128,ox+60,170)+ckW(ox+60,170,ox+194,170)+c4t(ox+44,108,"R<tspan font-size='9' dy='3'>B</tspan>",{a:"end"});
+  g+=ckW(ox+235,195,ox+235,240)+ckGnd(ox+235,240);
+  g+=`<path d="M${ox+72} 66 L${ox+72} 160 L${ox+192} 160 L${ox+222} 200 L${ox+222} 236" fill="none" stroke="${C4.in}" stroke-width="3" opacity=".55"/>`;
+  g+=`<path d="M${ox+222} 66 L${ox+222} 140 L${ox+222} 236" fill="none" stroke="${C4.out}" stroke-width="3" opacity=".55" stroke-dasharray="7 5"/>`;
+  g+=c4t(ox+120,272,"파랑: 베이스 루프  V<tspan font-size='9' dy='3'>CC</tspan><tspan dy='-3'> = I</tspan><tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'>R</tspan><tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'> + V</tspan><tspan font-size='9' dy='3'>BE</tspan>",{fs:12,c:C4.in});
+  g+=c4t(ox+120,292,"주황: 컬렉터 루프  V<tspan font-size='9' dy='3'>CC</tspan><tspan dy='-3'> = I</tspan><tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'>R</tspan><tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'> + V</tspan><tspan font-size='9' dy='3'>CE</tspan>",{fs:12,c:C4.out});
+  return g+"</svg>";
+}
+
+/* DC 부하선 + Q점 이동 (β 50 → 100) */
+function c4LoadLine(){
+  const X=v=>70+v*48, Y=i=>250-i*34;
+  let g=`<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DC 부하선 위에서 β가 50에서 100으로 바뀔 때 Fixed Bias와 Collector Feedback의 Q점 이동 비교">`;
+  g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(12.6)}" y2="${Y(0)}" stroke="${VIZ.axis}" stroke-width="1.6"/>`;
+  g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(0)}" y2="${Y(6.6)}" stroke="${VIZ.axis}" stroke-width="1.6"/>`;
+  [0,3,6,9,12].forEach(v=>{ g+=c4t(X(v),Y(0)+20,v,{fs:11,fw:600,c:VIZ.muted}); });
+  [0,2,4,6].forEach(i=>{ g+=c4t(X(0)-10,Y(i)+4,i,{fs:11,fw:600,c:VIZ.muted,a:"end"}); });
+  g+=c4t(X(12.6),Y(0)+38,"V<tspan font-size='9' dy='3'>CE</tspan><tspan dy='-3'> (V)</tspan>",{fs:12,a:"end"})+c4t(X(0)+6,Y(6.6)-6,"I<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'> (mA)</tspan>",{fs:12,a:"start"});
+  g+=`<rect x="${X(0)}" y="${Y(6)}" width="${X(1)-X(0)}" height="${Y(0)-Y(6)}" fill="${C4.out}" opacity=".08"/>`;
+  g+=c4t(X(0.5),Y(3.6),"포화",{fs:11,c:C4.out})+c4t(X(0.5),Y(3.6)+14,"쪽",{fs:11,c:C4.out});
+  g+=`<line x1="${X(0)}" y1="${Y(6)}" x2="${X(12)}" y2="${Y(0)}" stroke="${VIZ.ink}" stroke-width="2.4"/>`;
+  g+=c4t(X(10.9),Y(1.2),"DC 부하선",{fs:12,c:VIZ.sub});
+  g+=c4t(X(0)+8,Y(6)+4,"V<tspan font-size='9' dy='3'>CC</tspan><tspan dy='-3'>/R</tspan><tspan font-size='9' dy='3'>C</tspan>",{fs:11,a:"start",c:VIZ.muted});
+  const pt=(v,i,col,lab,anchor)=>`<circle cx="${X(v)}" cy="${Y(i)}" r="7" fill="${col}" stroke="#fff" stroke-width="2"/>`+c4t(X(v)+(anchor==="end"?-12:12),Y(i)+(anchor==="end"?-8:-10),lab,{fs:11.5,c:col,a:anchor||"start"});
+  g+=`<path d="M${X(6.86)} ${Y(2.57)} L${X(1.72)+8} ${Y(5.14)-4}" stroke="${C4.out}" stroke-width="2" stroke-dasharray="5 4" fill="none"/>`;
+  g+=`<path d="M${X(8.43)} ${Y(1.75)} L${X(6.59)+6} ${Y(2.68)-3}" stroke="${C4.fb}" stroke-width="2" stroke-dasharray="5 4" fill="none"/>`;
+  g+=pt(6.86,2.57,C4.out,"Fixed β=50","start")+pt(1.72,5.14,C4.out,"Fixed β=100","start");
+  g+=pt(8.43,1.75,C4.fb,"CF β=50","start")+pt(6.59,2.68,C4.fb,"CF β=100","end");
+  g+=c4t(470,40,"V<tspan font-size='9' dy='3'>CC</tspan><tspan dy='-3'>=12 V, R</tspan><tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'>=220 kΩ, R</tspan><tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'>=2 kΩ</tspan>",{fs:12,fw:600,c:VIZ.sub,a:"start"});
+  g+=c4t(470,62,"주황: Fixed Bias — 포화 쪽으로 크게 이동",{fs:12,c:C4.out,a:"start"});
+  g+=c4t(470,82,"초록: Collector Feedback — 조금만 이동",{fs:12,c:C4.fb,a:"start"});
+  return g+"</svg>";
+}
+
+/* Collector Feedback 연쇄 — 회로 위에 화살표 */
+function c4CfChain(){
+  let g=`<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Collector Feedback 회로에서 I_C 증가가 V_C 감소, I_B 감소로 이어지는 음의 피드백">`;
+  const tx=260, ty=180, cN=275, bN=234, top=40;
+  g+=ckW(cN,top,cN,62)+ckResV(cN,62,50)+ckW(cN,112,cN,ty-25)+ckW(cN-60,top,cN+40,top)+c4t(cN+46,top+5,"V<tspan font-size='9' dy='3'>CC</tspan>",{a:"start"});
+  g+=c4t(cN+16,92,"R<tspan font-size='9' dy='3'>C</tspan>",{a:"start"});
+  g+=ckNpn(tx,ty)+ckW(cN,ty+25,cN,250)+ckGnd(cN,250);
+  g+=ckDot(cN,130)+ckW(cN,130,180,130)+ckW(180,130,180,138)+ckResV(180,138,32)+ckW(180,170,180,ty)+ckW(180,ty,bN,ty);
+  g+=c4t(166,160,"R<tspan font-size='9' dy='3'>B</tspan>",{a:"end"});
+  const badge=(x,y,n,txt,col)=>`<circle cx="${x}" cy="${y}" r="12" fill="${col}"/>`+c4t(x,y+4.5,n,{fs:12,c:"#fff"})+c4t(x+18,y+5,txt,{fs:13,c:col,a:"start"});
+  g+=badge(330,215,"①","β↑ → I<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'>↑ 하려 함</tspan>",C4.out);
+  g+=badge(330,88,"②","R<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'> 전압강하↑ (I</tspan><tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'>+I</tspan><tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'>)</tspan>",C4.out);
+  g+=badge(330,132,"③","V<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'>↓</tspan>",C4.fb);
+  g+=badge(205,222,"④","",C4.fb)+c4t(205,250,"I<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'>↓</tspan>",{fs:13,c:C4.fb});
+  g+=c4Arrow(300,132,288,131,C4.fb);
+  g+=c4Arrow(205,190,228,190,C4.fb);
+  g+=`<rect x="470" y="150" width="210" height="90" rx="12" fill="${C4.fb}" opacity=".10"/>`;
+  g+=c4t(575,180,"⑤ I<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'> 증가가 일부 억제</tspan>",{fs:13.5,c:C4.fb});
+  g+=c4t(575,204,"= 음의 피드백",{fs:12.5,c:C4.fb});
+  g+=c4t(575,226,"(Fixed보다 덜 증가)",{fs:11.5,fw:600,c:VIZ.muted});
+  return g+"</svg>";
+}
+
+/* 동작 영역 — 출력 특성 위에 표시 */
+function c4Regions(){
+  const X=v=>60+v*44, Y=i=>230-i*36;
+  let g=`<svg viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="출력 특성 위의 활성, 포화, 차단 영역">`;
+  g+=`<rect x="${X(0)}" y="${Y(5.3)}" width="${X(.6)-X(0)}" height="${Y(0)-Y(5.3)}" fill="${C4.out}" opacity=".12"/>`;
+  g+=`<rect x="${X(0)}" y="${Y(.25)}" width="${X(12)-X(0)}" height="${Y(0)-Y(.25)}" fill="${VIZ.muted}" opacity=".18"/>`;
+  g+=`<rect x="${X(.6)}" y="${Y(5.3)}" width="${X(12)-X(.6)}" height="${Y(.25)-Y(5.3)}" fill="${C4.in}" opacity=".07"/>`;
+  [1,2,3,4,5].forEach(k=>{ const i=k*0.9; g+=`<path d="M${X(0)} ${Y(0)} L${X(.5)} ${Y(i*.96)} L${X(12)} ${Y(i*1.05)}" fill="none" stroke="${VIZ.ink}" stroke-width="1.8"/>`; g+=c4t(X(12)+6,Y(i*1.05)+4,`I<tspan font-size='8' dy='3'>B${k}</tspan>`,{fs:11,fw:600,c:VIZ.muted,a:"start"}); });
+  g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(12.5)}" y2="${Y(0)}" stroke="${VIZ.axis}" stroke-width="1.6"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(0)}" y2="${Y(5.8)}" stroke="${VIZ.axis}" stroke-width="1.6"/>`;
+  g+=c4t(X(12.5),Y(0)+22,"V<tspan font-size='9' dy='3'>CE</tspan>",{fs:12,a:"end"})+c4t(X(0)+6,Y(5.8)-4,"I<tspan font-size='9' dy='3'>C</tspan>",{fs:12,a:"start"});
+  g+=c4t(X(6),Y(2.9),"활성 영역 (Active)",{fs:14,c:C4.in})+c4t(X(6),Y(2.9)+20,"BE 순방향 · BC 역방향 → 증폭",{fs:12,fw:600,c:VIZ.sub});
+  g+=c4t(X(.3),Y(5.3)-8,"포화",{fs:12.5,c:C4.out})+c4t(X(6),Y(0)+40,"차단 (Cutoff): BE·BC 모두 역방향 — I<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'> ≈ 0</tspan>",{fs:12,c:VIZ.sub});
+  g+=c4t(X(1.2),Y(5.3)+18,"BC도 순방향",{fs:11,fw:600,c:C4.out,a:"start"});
+  return g+"</svg>";
+}
+
 /* ───────── Chapter 4: BJT 바이어스 회로 공부 자료 ───────── */
 function renderBjtBiasNotes(){
   const q = (t, a) => `<div class="quiz-item"><p>${t}</p><details class="qa"><summary>생각 정리 포인트</summary><div class="a">${a}</div></details></div>`;
@@ -827,6 +995,7 @@ function renderBjtBiasNotes(){
           <tr><th scope="row">Saturation (포화)</th><td>순방향</td><td>순방향</td><td>스위치 ON</td></tr>
           <tr><th scope="row">Cutoff (차단)</th><td>역방향</td><td>역방향</td><td>스위치 OFF</td></tr>
         </tbody></table></div>
+      <figure style="margin-top:16px">${c4Regions()}<figcaption>같은 트랜지스터라도 Q점이 어느 영역에 있느냐에 따라 증폭기도, 스위치도 됩니다.</figcaption></figure>
       <p>NPN 활성 영역의 전압 관계: <b>V<sub>C</sub> &gt; V<sub>B</sub> &gt; V<sub>E</sub></b>, 실리콘이면 V<sub>BE</sub> ≈ 0.7 V.</p>
       <p class="calc-note">⚠️ 0.7 V는 ON/OFF의 절대 경계가 아니라 회로 해석용 <b>근삿값</b>입니다. 또 BE가 순방향이라고 늘 증폭기인 것은 아닙니다. BC까지 순방향이 되면 포화입니다. Q점은 V<sub>BE</sub> 하나가 아니라 <b>활성 영역 안의 I<sub>C</sub>와 V<sub>CE</sub></b>로 정해집니다.</p>
       <p><b>교재 Fig. 3.7·3.8 다시 보기</b>: CB 출력 특성에서 I<sub>E</sub>가 같으면 V<sub>CB</sub>가 크게 변해도 I<sub>C</sub>는 거의 일정합니다(Example 3.1: I<sub>E</sub> = 3 mA → V<sub>CB</sub>가 10 V든 2 V든 I<sub>C</sub> ≈ 3 mA). 이것은 “역바이어스가 필요 없다”는 뜻이 아니라, <b>역바이어스가 유지되는 동안에는 그 크기에 덜 민감하다</b>는 뜻입니다.</p>
@@ -834,6 +1003,7 @@ function renderBjtBiasNotes(){
 
     <div class="card">
       <h3>04 · Ch.3 회로도와 Ch.4 Fixed-Bias 회로도가 달라 보이는 이유</h3>
+      <figure style="margin-top:16px">${c4Ch3vsCh4()}<figcaption>왼쪽과 오른쪽은 같은 회로입니다. 전원 두 개를 V<sub>CC</sub> 하나로 합쳐도 베이스 루프(파랑)와 컬렉터 루프(주황)는 그대로 있습니다.</figcaption></figure>
       <p>Ch.3은 BE 쪽과 CE 쪽에 전원을 따로(V<sub>BB</sub>, V<sub>CC</sub>) 그려 두 전류 경로를 보여 줍니다. Ch.4 Fixed Bias는 <b>하나의 V<sub>CC</sub></b>를 R<sub>B</sub>와 R<sub>C</sub>에 함께 쓰고 이미터를 접지합니다. 그래도 <b>닫힌 경로 두 개</b>는 그대로입니다.</p>
       <div class="calc">베이스 루프: V<sub>CC</sub> → R<sub>B</sub> → B → E → 접지 &nbsp;⇒&nbsp; <b>V<sub>CC</sub> = I<sub>B</sub>R<sub>B</sub> + V<sub>BE</sub></b><br>
       컬렉터 루프: V<sub>CC</sub> → R<sub>C</sub> → C → E → 접지 &nbsp;⇒&nbsp; <b>V<sub>CC</sub> = I<sub>C</sub>R<sub>C</sub> + V<sub>CE</sub></b></div>
@@ -856,6 +1026,7 @@ function renderBjtBiasNotes(){
           <tr><th scope="row">4.7</th><td>Emitter Follower</td><td>출력을 이미터에서 얻으면?</td><td><b>CC</b> 구성의 DC 바이어스, 버퍼 역할</td></tr>
           <tr><th scope="row">4.8</th><td>Common Base</td><td>입력을 이미터에 넣으면?</td><td><b>CB</b> 구성에도 DC 바이어스가 필요</td></tr>
         </tbody></table></div>
+      ${c4SixGrid()}
       <div class="dn-flow">4.3–4.6 Q점을 어떻게 잡고 안정화할까? → 4.7–4.8 CC·CB 구성은? → Ch.5 AC 이득·임피던스</div>
       <p class="calc-note">뒤에 나온 회로가 무조건 더 좋은 것은 아닙니다. 설계 조건·저항값·요구 성능에 따라 알맞은 회로가 달라집니다.</p>
     </div>
@@ -863,7 +1034,7 @@ function renderBjtBiasNotes(){
     <div class="card">
       <h3>06 · 4.6 Collector Feedback 자세히</h3>
       <p>Fixed Bias와 비교하면 차이는 하나입니다. <b>R<sub>B</sub>의 위쪽 끝이 V<sub>CC</sub>가 아니라 컬렉터에 연결</b>됩니다. 트랜지스터와 CE 구성은 같습니다.</p>
-      <div class="dn-flow">β 증가 → I<sub>C</sub> 증가하려 함 → R<sub>C</sub> 전압강하 증가 → V<sub>C</sub> 감소 → R<sub>B</sub>를 통한 I<sub>B</sub> 감소 → I<sub>C</sub> 증가가 일부 억제 (음의 피드백)</div>
+      <figure style="margin-top:16px">${c4CfChain()}<figcaption>①→⑤ 순서로 따라가 보세요. 컬렉터의 변화가 R<sub>B</sub>를 통해 베이스로 되돌아갑니다.</figcaption></figure>
       <p class="calc-note">I<sub>C</sub>가 줄어든다는 뜻이 아니라, <b>Fixed Bias보다 덜 증가</b>한다는 뜻입니다. 이 회로에서 R<sub>C</sub>에는 I<sub>C</sub> + I<sub>B</sub>가 흐릅니다.</p>
       <div class="calc">V<sub>C</sub> = V<sub>CC</sub> − (I<sub>C</sub> + I<sub>B</sub>)R<sub>C</sub>, &nbsp;I<sub>B</sub> = (V<sub>C</sub> − V<sub>BE</sub>)/R<sub>B</sub>, &nbsp;I<sub>C</sub> = βI<sub>B</sub><br>
       ⇒ <b>I<sub>B</sub> = (V<sub>CC</sub> − V<sub>BE</sub>) / [R<sub>B</sub> + (β+1)R<sub>C</sub>]</b></div>
@@ -875,10 +1046,12 @@ function renderBjtBiasNotes(){
           <tr><th scope="row">50</th><td>약 2.57 mA</td><td>약 1.75 mA</td></tr>
           <tr><th scope="row">100</th><td>약 5.14 mA (약 2배)</td><td>약 2.68 mA (약 53% 증가)</td></tr>
         </tbody></table></div>
+      <figure style="margin-top:16px">${c4LoadLine()}<figcaption>같은 표를 부하선 위에 그리면 차이가 한눈에 보입니다. Fixed Bias의 Q점은 β가 2배가 되자 포화 쪽(V<sub>CE</sub> ≈ 1.7 V)까지 밀려 갑니다.</figcaption></figure>
     </div>
 
     <div class="card">
       <h3>07 · 4.7 Emitter Follower(CC)와 4.8 Common Base(CB)</h3>
+      <div class="dn-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><figure>${c4Circuit("ef")}<figcaption><b>Emitter Follower (CC)</b> · 입력 B, 출력 E</figcaption></figure><figure>${c4Circuit("cb")}<figcaption><b>Common Base (CB)</b> · 입력 E, 출력 C</figcaption></figure></div>
       <p><b>Emitter Follower</b>: 출력을 컬렉터가 아니라 <b>이미터</b>에서 얻는 CC 구성입니다. DC 근사로 V<sub>E</sub> ≈ V<sub>B</sub> − 0.7 V. Ch.5에서 보면 전압 이득은 1에 가깝지만(약간 작음) 입력 임피던스가 높고 출력 임피던스가 낮아 <b>버퍼</b>로 쓰입니다. 모든 증폭기가 전압을 키우려고 있는 것은 아닙니다.</p>
       <p><b>Common Base</b>: 입력은 이미터, 출력은 컬렉터, 베이스가 공통입니다. 전류 이득 α = I<sub>C</sub>/I<sub>E</sub>는 1보다 조금 작고, 입력 임피던스가 낮아 고주파 회로 등에 쓰입니다. BE 순방향·BC 역방향이라는 <b>내부 동작 조건은 CE와 똑같습니다</b>. 단자를 다르게 쓸 뿐입니다.</p>
       <p class="calc-note">임피던스: 최대 <b>전력</b> 전달은 R<sub>L</sub> = R<sub>S</sub>(정합)이지만, 일반적인 <b>전압</b> 증폭기는 입력 임피던스를 신호원보다 훨씬 크게 해 전압 손실을 줄입니다. 무엇을 전달하려는지에 따라 조건이 달라집니다.</p>
